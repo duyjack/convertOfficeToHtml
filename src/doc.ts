@@ -1,0 +1,168 @@
+import Docxtemplater from 'docxtemplater';
+import PizZip from 'pizzip';
+import PizZipUtils from 'pizzip/utils/index.js';
+import expressionParser from 'docxtemplater/expressions';
+import mammoth from 'mammoth';
+import { saveAs } from 'file-saver';
+
+export class SettingDoc {
+    #smallInputSize: number = 20;
+    #mediumInputSize: number = 30;
+    #largeInputSize: number = 75;
+
+    #containsTextSmallInput: string[] = [];
+    #containsTextMediumInput: string[] = [];
+    #containsTextLargeInput: string[] = [];
+
+    get smallInputSize(): number {
+        return this.#smallInputSize;
+    }
+
+    get mediumInputSize(): number {
+        return this.#mediumInputSize;
+    }
+
+    get largeInputSize(): number {
+        return this.#largeInputSize;
+    }
+
+
+    ///
+    get containsTextSmallInput(): string[] {
+        return this.#containsTextSmallInput;
+    }
+
+    get containsTextMediumInput(): string[] {
+        return this.#containsTextMediumInput;
+    }
+
+    get containsTextLargeInput(): string[] {
+        return this.#containsTextLargeInput;
+    }
+
+
+    config(options: {
+        smallInputSize?: number,
+        mediumInputSize?: number,
+        largeInputSize?: number,
+
+        containsTextSmallInput?: string[],
+        containsTextMediumInput?: string[],
+        containsTextLargeInput?: string[],
+    }) {
+        this.#smallInputSize = options.smallInputSize ?? 20;
+        this.#mediumInputSize = options.mediumInputSize ?? 30;
+        this.#largeInputSize = options.largeInputSize ?? 30;
+
+        this.#containsTextSmallInput = options?.containsTextSmallInput ?? [];
+        this.#containsTextMediumInput = options?.containsTextMediumInput ?? [];
+        this.#containsTextLargeInput = options?.containsTextLargeInput ?? [];
+    }
+}
+
+function loadFile(url: string, callback: (err: Error, content: string) => void) {
+    PizZipUtils.getBinaryContent(url, callback);
+}
+
+export default class OfficeDoc<T> {
+
+    #url: string;
+    #params: any; // key: value of doc
+    #setting: SettingDoc;
+
+    constructor(url: string, setting: SettingDoc) {
+        this.#url = url;
+        this.#params = {};
+        this.#setting = setting;
+    }
+
+    async loadToHtml() {
+        // const url = 'https://gomeetv3.vnptit.vn/storage/test/TT18_3.docx';
+        const url = this.#url;
+        let arrayBuffer;
+        try {
+            const response = await fetch(url);
+            arrayBuffer = await response.arrayBuffer();
+            this.#params = {};
+        } catch (err) {
+            throw err;
+        }
+        mammoth.convertToHtml({ arrayBuffer: arrayBuffer })
+            .then((result) => {
+                var html = result.value; // The generated HTML
+                const pdfContainer = document.getElementById('pdf-container');
+                const textReplaces = html.match(/{{\s*[\w.]+\s*}}/g);
+                console.log('textReplaces', textReplaces);
+                for (let text of textReplaces as Array<string>) {
+                    let width = '10px';
+                    this.#params[`${text}`] = '';
+                    
+                    // const length = text.split('_').length;
+                    // switch (length) {
+                    //     case 1: width = '20px'; break;
+                    //     case 2: width = '30px'; break;
+                    //     case 3: width = '75px'; break;
+                    //     default:
+                    //         width = 'fit-content';
+                    //         break;
+                    // }
+
+                    if (this.#setting.containsTextSmallInput.some(txt => txt === text)) {
+                        width = `${this.#setting.smallInputSize}px`;
+                    } else if (this.#setting.containsTextMediumInput.some(txt => txt === text)) {
+                        width = `${this.#setting.mediumInputSize}px`;
+                    } else if (this.#setting.containsTextLargeInput.some(txt => txt === text)) {
+                        width = `${this.#setting.largeInputSize}px`;
+                    } else {
+                        width = `${this.#setting.mediumInputSize}px`;
+                    }
+                    
+                    const component = ` <input type='text' style='width: ${width}'/>`;
+                    html = html.replace(text, component);
+                    // console.log('text', text);
+                    // console.log(html.replace(text, component));
+                    // break;
+                }
+                // console.log('html', html);
+                pdfContainer!.innerHTML = html;
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
+
+    generateDocument(fileName: string) {
+        loadFile(
+            this.#url,
+            async (error, content) => {
+                if (error) {
+                    throw error;
+                }
+                const zip = new PizZip(content);
+                const doc = new Docxtemplater(zip, {
+                    paragraphLoop: true,
+                    linebreaks: true,
+                    parser: expressionParser,
+                    delimiters: {
+                        start: '{{',
+                        end: '}}'
+                    }
+                });
+                doc.render({
+                    ...this.#params
+                });
+                const out = doc.getZip().generate({
+                    type: 'blob',
+                    mimeType:
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                }); //Output the document using Data-URI
+
+                saveAs(out, `${fileName}.docx`);
+            }
+        );
+    }
+
+    getResult(): T {
+        return this.#params as T;
+    }
+}
