@@ -76,7 +76,7 @@ export default class OfficeDoc<T> {
         this.#setting = setting;
     }
 
-    async loadToHtml() {
+    async loadToHtml(container: HTMLElement) {
         // const url = 'https://gomeetv3.vnptit.vn/storage/test/TT18_3.docx';
         const url = this.#url;
         let arrayBuffer;
@@ -90,7 +90,7 @@ export default class OfficeDoc<T> {
         mammoth.convertToHtml({ arrayBuffer: arrayBuffer })
             .then((result) => {
                 var html = result.value; // The generated HTML
-                const pdfContainer = document.getElementById('pdf-container');
+                const pdfContainer = container;
                 const textReplaces = html.match(/{{\s*[\w.]+\s*}}/g);
                 console.log('textReplaces', textReplaces);
                 for (let text of textReplaces as Array<string>) {
