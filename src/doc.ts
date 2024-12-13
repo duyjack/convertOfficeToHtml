@@ -4,6 +4,8 @@ import PizZipUtils from 'pizzip/utils/index.js';
 import expressionParser from 'docxtemplater/expressions';
 import mammoth from 'mammoth';
 import { saveAs } from 'file-saver';
+import BaseOffice from './base/office';
+import { PrefixId } from './enum';
 
 export class SettingDoc {
     #smallInputSize: number = 20;
@@ -64,7 +66,7 @@ function loadFile(url: string, callback: (err: Error, content: string) => void) 
     PizZipUtils.getBinaryContent(url, callback);
 }
 
-export default class OfficeDoc<T> {
+export default class OfficeDoc<T> implements BaseOffice {
 
     #url: string;
     #params: any; // key: value of doc
@@ -95,17 +97,8 @@ export default class OfficeDoc<T> {
                 console.log('textReplaces', textReplaces);
                 for (let text of textReplaces as Array<string>) {
                     let width = '10px';
-                    this.#params[`${text}`] = '';
-                    
-                    // const length = text.split('_').length;
-                    // switch (length) {
-                    //     case 1: width = '20px'; break;
-                    //     case 2: width = '30px'; break;
-                    //     case 3: width = '75px'; break;
-                    //     default:
-                    //         width = 'fit-content';
-                    //         break;
-                    // }
+                    const key = `${text}`;
+                    this.#params[key] = '';
 
                     if (this.#setting.containsTextSmallInput.some(txt => text.includes(txt))) {
                         width = `${this.#setting.smallInputSize}px`;
@@ -116,12 +109,9 @@ export default class OfficeDoc<T> {
                     } else {
                         width = `${this.#setting.mediumInputSize}px`;
                     }
-                    
-                    const component = ` <input type='text' style='width: ${width}'/>`;
+                    const idElement = this.generateIdElement(key);
+                    const component = ` <input id=${idElement} type='text' style='width: ${width}'/>`;
                     html = html.replace(text, component);
-                    // console.log('text', text);
-                    // console.log(html.replace(text, component));
-                    // break;
                 }
                 // console.log('html', html);
                 pdfContainer!.innerHTML = html;
@@ -162,7 +152,15 @@ export default class OfficeDoc<T> {
         );
     }
 
-    getResult(): T {
+    generateIdElement(key: string) {
+        return `${PrefixId.input}_${key}`;
+    }
+
+    getParams() {
         return this.#params as T;
+    }
+
+    updateParams(key: string, value: any): void {
+        this.#params[key] = value;
     }
 }

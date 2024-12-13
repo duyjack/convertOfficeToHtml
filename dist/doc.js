@@ -105,15 +105,6 @@ class OfficeDoc {
                 for (let text of textReplaces) {
                     let width = '10px';
                     __classPrivateFieldGet(this, _OfficeDoc_params, "f")[`${text}`] = '';
-                    // const length = text.split('_').length;
-                    // switch (length) {
-                    //     case 1: width = '20px'; break;
-                    //     case 2: width = '30px'; break;
-                    //     case 3: width = '75px'; break;
-                    //     default:
-                    //         width = 'fit-content';
-                    //         break;
-                    // }
                     if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsTextSmallInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").smallInputSize}px`;
                     }

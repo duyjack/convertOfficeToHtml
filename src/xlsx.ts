@@ -1,17 +1,74 @@
 import * as xlsx from 'xlsx';
+import { PrefixId } from './enum';
+import BaseOffice from './base/office';
 
-export default class Xlsx {
+export class SettingXlsx {
+    #smallInputSize: number = 20;
+    #mediumInputSize: number = 30;
+    #largeInputSize: number = 75;
+
+    #containsTextSmallInput: string[] = [];
+    #containsTextMediumInput: string[] = [];
+    #containsTextLargeInput: string[] = [];
+
+    get smallInputSize(): number {
+        return this.#smallInputSize;
+    }
+
+    get mediumInputSize(): number {
+        return this.#mediumInputSize;
+    }
+
+    get largeInputSize(): number {
+        return this.#largeInputSize;
+    }
+
+
+    ///
+    get containsTextSmallInput(): string[] {
+        return this.#containsTextSmallInput;
+    }
+
+    get containsTextMediumInput(): string[] {
+        return this.#containsTextMediumInput;
+    }
+
+    get containsTextLargeInput(): string[] {
+        return this.#containsTextLargeInput;
+    }
+
+
+    config(options: {
+        smallInputSize?: number,
+        mediumInputSize?: number,
+        largeInputSize?: number,
+
+        containsTextSmallInput?: string[],
+        containsTextMediumInput?: string[],
+        containsTextLargeInput?: string[],
+    }) {
+        this.#smallInputSize = options.smallInputSize ?? 20;
+        this.#mediumInputSize = options.mediumInputSize ?? 30;
+        this.#largeInputSize = options.largeInputSize ?? 30;
+
+        this.#containsTextSmallInput = options?.containsTextSmallInput ?? [];
+        this.#containsTextMediumInput = options?.containsTextMediumInput ?? [];
+        this.#containsTextLargeInput = options?.containsTextLargeInput ?? [];
+    }
+}
+
+export default class Xlsx<T> implements BaseOffice {
     #url: string;
     #params: any; // key: value of doc
-    // #setting: SettingDoc;
+    #setting: SettingXlsx;
 
     constructor(
-        url: string, 
-        // setting: SettingDoc,
+        url: string,
+        setting: SettingXlsx,
     ) {
         this.#url = url;
         this.#params = {};
-        // this.#setting = setting;
+        this.#setting = setting;
     }
 
     async convertXlsx2Html(container: HTMLElement) {
@@ -29,9 +86,34 @@ export default class Xlsx {
 
             // Lấy sheet đầu tiên
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-
+            console.log('cols', firstSheet['!cols']);
+            console.log('rows', firstSheet['!cols']);
             // Chuyển đổi sheet thành HTML
-            const html = xlsx.utils.sheet_to_html(firstSheet);
+            let html = xlsx.utils.sheet_to_html(firstSheet);
+            console.log('html', html);
+
+            const textReplaces = html.match(/>{{\s*[\w.]+\s*}}</g);
+            console.log('textReplaces', textReplaces);
+            for (let text of textReplaces as Array<string>) {
+                let width = '10px';
+                const key = text.replace('>{{', '').replace('}}<', '');
+                if (!this.#params[`${key}`]) {
+                    this.#params[`${key}`] = '';
+                }
+
+                if (this.#setting.containsTextSmallInput.some(txt => text.includes(txt))) {
+                    width = `${this.#setting.smallInputSize}px`;
+                } else if (this.#setting.containsTextMediumInput.some(txt => text.includes(txt))) {
+                    width = `${this.#setting.mediumInputSize}px`;
+                } else if (this.#setting.containsTextLargeInput.some(txt => text.includes(txt))) {
+                    width = `${this.#setting.largeInputSize}px`;
+                } else {
+                    width = `${this.#setting.mediumInputSize}px`;
+                }
+                const idElement = this.generateIdElement(key);
+                const component = `> <input id=${idElement} type='text' style='width: ${width}'/><`;
+                html = html.replace(text, component);
+            }
 
             // Hiển thị HTML
             container.innerHTML = html;
@@ -41,4 +123,30 @@ export default class Xlsx {
         }
     }
 
+    generateIdElement(key: string) {
+        return `${PrefixId.input}_${key}`;
+    }
+
+    getParams() {
+        return this.#params as T;
+    }
+
+    onChangeValueInput(callback: (key: string, value: any) => void): void {
+        Object.keys(this.#params).forEach(key => {
+            const idElement = this.generateIdElement(key);
+            const element = document.getElementById(idElement) as HTMLInputElement;
+            element?.addEventListener('change', (e) => {
+                callback(key, (e.target as HTMLInputElement).value);
+            });
+        })
+    }
+
+    updateParams(key: string, value: any): void {
+        this.#params[key] = value;
+        const elementId = this.generateIdElement(key);
+        const element = document.getElementById(elementId) as HTMLInputElement | undefined; 
+        if (element) {
+            element!.value = value;
+        }
+    }
 }
