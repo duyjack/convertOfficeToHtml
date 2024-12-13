@@ -32,8 +32,13 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OfficeDoc = exports.SettingDoc = void 0;
+exports.OfficeXlsx = exports.OfficeDoc = exports.SettingDoc = void 0;
 const doc_1 = __importStar(require("./doc"));
 exports.OfficeDoc = doc_1.default;
 Object.defineProperty(exports, "SettingDoc", { enumerable: true, get: function () { return doc_1.SettingDoc; } });
+const xlsx_1 = __importDefault(require("./xlsx"));
+exports.OfficeXlsx = xlsx_1.default;

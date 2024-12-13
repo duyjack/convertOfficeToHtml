@@ -1,2 +1,3 @@
 import OfficeDoc, { SettingDoc } from './doc';
-export { SettingDoc, OfficeDoc };
+import OfficeXlsx from './xlsx';
+export { SettingDoc, OfficeDoc, OfficeXlsx, };
