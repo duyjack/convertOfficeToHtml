@@ -18,7 +18,7 @@ export declare class SettingDoc {
 export default class OfficeDoc<T> {
     #private;
     constructor(url: string, setting: SettingDoc);
-    loadToHtml(): Promise<void>;
+    loadToHtml(container: HTMLElement): Promise<void>;
     generateDocument(fileName: string): void;
     getResult(): T;
 }

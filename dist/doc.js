@@ -83,7 +83,7 @@ class OfficeDoc {
         __classPrivateFieldSet(this, _OfficeDoc_params, {}, "f");
         __classPrivateFieldSet(this, _OfficeDoc_setting, setting, "f");
     }
-    loadToHtml() {
+    loadToHtml(container) {
         return __awaiter(this, void 0, void 0, function* () {
             // const url = 'https://gomeetv3.vnptit.vn/storage/test/TT18_3.docx';
             const url = __classPrivateFieldGet(this, _OfficeDoc_url, "f");
@@ -99,7 +99,7 @@ class OfficeDoc {
             mammoth_1.default.convertToHtml({ arrayBuffer: arrayBuffer })
                 .then((result) => {
                 var html = result.value; // The generated HTML
-                const pdfContainer = document.getElementById('pdf-container');
+                const pdfContainer = container;
                 const textReplaces = html.match(/{{\s*[\w.]+\s*}}/g);
                 console.log('textReplaces', textReplaces);
                 for (let text of textReplaces) {
