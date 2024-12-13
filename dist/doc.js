@@ -114,13 +114,13 @@ class OfficeDoc {
                     //         width = 'fit-content';
                     //         break;
                     // }
-                    if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsTextSmallInput.some(txt => txt === text)) {
+                    if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsTextSmallInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").smallInputSize}px`;
                     }
-                    else if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsTextMediumInput.some(txt => txt === text)) {
+                    else if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsTextMediumInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").mediumInputSize}px`;
                     }
-                    else if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsTextLargeInput.some(txt => txt === text)) {
+                    else if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsTextLargeInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").largeInputSize}px`;
                     }
                     else {
