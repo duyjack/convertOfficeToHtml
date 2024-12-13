@@ -107,11 +107,11 @@ export default class OfficeDoc<T> {
                     //         break;
                     // }
 
-                    if (this.#setting.containsTextSmallInput.some(txt => txt === text)) {
+                    if (this.#setting.containsTextSmallInput.some(txt => text.includes(txt))) {
                         width = `${this.#setting.smallInputSize}px`;
-                    } else if (this.#setting.containsTextMediumInput.some(txt => txt === text)) {
+                    } else if (this.#setting.containsTextMediumInput.some(txt => text.includes(txt))) {
                         width = `${this.#setting.mediumInputSize}px`;
-                    } else if (this.#setting.containsTextLargeInput.some(txt => txt === text)) {
+                    } else if (this.#setting.containsTextLargeInput.some(txt => text.includes(txt))) {
                         width = `${this.#setting.largeInputSize}px`;
                     } else {
                         width = `${this.#setting.mediumInputSize}px`;
