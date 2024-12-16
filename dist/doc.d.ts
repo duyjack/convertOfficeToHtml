@@ -1,3 +1,4 @@
+import BaseOffice from './base/office';
 export declare class SettingDoc {
     #private;
     get smallInputSize(): number;
@@ -15,10 +16,9 @@ export declare class SettingDoc {
         containsTextLargeInput?: string[];
     }): void;
 }
-export default class OfficeDoc<T> {
+export default class OfficeDoc<T> extends BaseOffice<T> {
     #private;
     constructor(url: string, setting: SettingDoc);
     loadToHtml(container: HTMLElement): Promise<void>;
     generateDocument(fileName: string): void;
-    getResult(): T;
 }

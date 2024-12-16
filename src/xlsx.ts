@@ -57,22 +57,20 @@ export class SettingXlsx {
     }
 }
 
-export default class Xlsx<T> implements BaseOffice {
-    #url: string;
-    #params: any; // key: value of doc
+export default class Xlsx<T> extends BaseOffice<T> {
+    
     #setting: SettingXlsx;
 
     constructor(
         url: string,
         setting: SettingXlsx,
     ) {
-        this.#url = url;
-        this.#params = {};
+        super(url, {} as any)
         this.#setting = setting;
     }
 
     async convertXlsx2Html(container: HTMLElement) {
-        const url = this.#url;
+        const url = this.url;
         try {
             // Fetch tệp Excel từ URL
             const response = await fetch(url);
@@ -97,10 +95,7 @@ export default class Xlsx<T> implements BaseOffice {
             for (let text of textReplaces as Array<string>) {
                 let width = '10px';
                 const key = text.replace('>{{', '').replace('}}<', '');
-                if (!this.#params[`${key}`]) {
-                    this.#params[`${key}`] = '';
-                }
-
+                this.initKeyWhenNoValue(key);
                 if (this.#setting.containsTextSmallInput.some(txt => text.includes(txt))) {
                     width = `${this.#setting.smallInputSize}px`;
                 } else if (this.#setting.containsTextMediumInput.some(txt => text.includes(txt))) {
@@ -120,33 +115,6 @@ export default class Xlsx<T> implements BaseOffice {
         } catch (error) {
             console.error('Error fetching or processing the file:', error);
             container.innerHTML = `<p style="color:red;">Error: ${JSON.stringify(error)}</p>`;
-        }
-    }
-
-    generateIdElement(key: string) {
-        return `${PrefixId.input}_${key}`;
-    }
-
-    getParams() {
-        return this.#params as T;
-    }
-
-    onChangeValueInput(callback: (key: string, value: any) => void): void {
-        Object.keys(this.#params).forEach(key => {
-            const idElement = this.generateIdElement(key);
-            const element = document.getElementById(idElement) as HTMLInputElement;
-            element?.addEventListener('change', (e) => {
-                callback(key, (e.target as HTMLInputElement).value);
-            });
-        })
-    }
-
-    updateParams(key: string, value: any): void {
-        this.#params[key] = value;
-        const elementId = this.generateIdElement(key);
-        const element = document.getElementById(elementId) as HTMLInputElement | undefined; 
-        if (element) {
-            element!.value = value;
         }
     }
 }

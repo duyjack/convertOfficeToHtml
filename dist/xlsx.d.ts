@@ -1,3 +1,4 @@
+import BaseOffice from './base/office';
 export declare class SettingXlsx {
     #private;
     get smallInputSize(): number;
@@ -15,7 +16,7 @@ export declare class SettingXlsx {
         containsTextLargeInput?: string[];
     }): void;
 }
-export default class Xlsx {
+export default class Xlsx<T> extends BaseOffice<T> {
     #private;
     constructor(url: string, setting: SettingXlsx);
     convertXlsx2Html(container: HTMLElement): Promise<void>;

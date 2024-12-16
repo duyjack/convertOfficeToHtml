@@ -66,26 +66,23 @@ function loadFile(url: string, callback: (err: Error, content: string) => void) 
     PizZipUtils.getBinaryContent(url, callback);
 }
 
-export default class OfficeDoc<T> implements BaseOffice {
+export default class OfficeDoc<T> extends BaseOffice<T> {
 
-    #url: string;
-    #params: any; // key: value of doc
     #setting: SettingDoc;
 
     constructor(url: string, setting: SettingDoc) {
-        this.#url = url;
-        this.#params = {};
+        super(url, {} as any);
         this.#setting = setting;
     }
 
     async loadToHtml(container: HTMLElement) {
         // const url = 'https://gomeetv3.vnptit.vn/storage/test/TT18_3.docx';
-        const url = this.#url;
+        const url = this.url;
         let arrayBuffer;
         try {
             const response = await fetch(url);
             arrayBuffer = await response.arrayBuffer();
-            this.#params = {};
+            this.resetParams();
         } catch (err) {
             throw err;
         }
@@ -98,8 +95,7 @@ export default class OfficeDoc<T> implements BaseOffice {
                 for (let text of textReplaces as Array<string>) {
                     let width = '10px';
                     const key = `${text}`;
-                    this.#params[key] = '';
-
+                    this.initKeyWhenNoValue(key);
                     if (this.#setting.containsTextSmallInput.some(txt => text.includes(txt))) {
                         width = `${this.#setting.smallInputSize}px`;
                     } else if (this.#setting.containsTextMediumInput.some(txt => text.includes(txt))) {
@@ -123,7 +119,7 @@ export default class OfficeDoc<T> implements BaseOffice {
 
     generateDocument(fileName: string) {
         loadFile(
-            this.#url,
+            this.url,
             async (error, content) => {
                 if (error) {
                     throw error;
@@ -139,7 +135,7 @@ export default class OfficeDoc<T> implements BaseOffice {
                     }
                 });
                 doc.render({
-                    ...this.#params
+                    ...this.getParams() as any
                 });
                 const out = doc.getZip().generate({
                     type: 'blob',
@@ -150,17 +146,5 @@ export default class OfficeDoc<T> implements BaseOffice {
                 saveAs(out, `${fileName}.docx`);
             }
         );
-    }
-
-    generateIdElement(key: string) {
-        return `${PrefixId.input}_${key}`;
-    }
-
-    getParams() {
-        return this.#params as T;
-    }
-
-    updateParams(key: string, value: any): void {
-        this.#params[key] = value;
     }
 }

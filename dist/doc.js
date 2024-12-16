@@ -22,7 +22,7 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _SettingDoc_smallInputSize, _SettingDoc_mediumInputSize, _SettingDoc_largeInputSize, _SettingDoc_containsTextSmallInput, _SettingDoc_containsTextMediumInput, _SettingDoc_containsTextLargeInput, _OfficeDoc_url, _OfficeDoc_params, _OfficeDoc_setting;
+var _SettingDoc_smallInputSize, _SettingDoc_mediumInputSize, _SettingDoc_largeInputSize, _SettingDoc_containsTextSmallInput, _SettingDoc_containsTextMediumInput, _SettingDoc_containsTextLargeInput, _OfficeDoc_setting;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettingDoc = void 0;
 const docxtemplater_1 = __importDefault(require("docxtemplater"));
@@ -31,6 +31,7 @@ const index_js_1 = __importDefault(require("pizzip/utils/index.js"));
 const expressions_1 = __importDefault(require("docxtemplater/expressions"));
 const mammoth_1 = __importDefault(require("mammoth"));
 const file_saver_1 = require("file-saver");
+const office_1 = __importDefault(require("./base/office"));
 class SettingDoc {
     constructor() {
         _SettingDoc_smallInputSize.set(this, 20);
@@ -74,24 +75,21 @@ _SettingDoc_smallInputSize = new WeakMap(), _SettingDoc_mediumInputSize = new We
 function loadFile(url, callback) {
     index_js_1.default.getBinaryContent(url, callback);
 }
-class OfficeDoc {
+class OfficeDoc extends office_1.default {
     constructor(url, setting) {
-        _OfficeDoc_url.set(this, void 0);
-        _OfficeDoc_params.set(this, void 0); // key: value of doc
+        super(url, {});
         _OfficeDoc_setting.set(this, void 0);
-        __classPrivateFieldSet(this, _OfficeDoc_url, url, "f");
-        __classPrivateFieldSet(this, _OfficeDoc_params, {}, "f");
         __classPrivateFieldSet(this, _OfficeDoc_setting, setting, "f");
     }
     loadToHtml(container) {
         return __awaiter(this, void 0, void 0, function* () {
             // const url = 'https://gomeetv3.vnptit.vn/storage/test/TT18_3.docx';
-            const url = __classPrivateFieldGet(this, _OfficeDoc_url, "f");
+            const url = this.url;
             let arrayBuffer;
             try {
                 const response = yield fetch(url);
                 arrayBuffer = yield response.arrayBuffer();
-                __classPrivateFieldSet(this, _OfficeDoc_params, {}, "f");
+                this.resetParams();
             }
             catch (err) {
                 throw err;
@@ -104,7 +102,8 @@ class OfficeDoc {
                 console.log('textReplaces', textReplaces);
                 for (let text of textReplaces) {
                     let width = '10px';
-                    __classPrivateFieldGet(this, _OfficeDoc_params, "f")[`${text}`] = '';
+                    const key = `${text}`;
+                    this.initKeyWhenNoValue(key);
                     if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsTextSmallInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").smallInputSize}px`;
                     }
@@ -117,11 +116,9 @@ class OfficeDoc {
                     else {
                         width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").mediumInputSize}px`;
                     }
-                    const component = ` <input type='text' style='width: ${width}'/>`;
+                    const idElement = this.generateIdElement(key);
+                    const component = ` <input id=${idElement} type='text' style='width: ${width}'/>`;
                     html = html.replace(text, component);
-                    // console.log('text', text);
-                    // console.log(html.replace(text, component));
-                    // break;
                 }
                 // console.log('html', html);
                 pdfContainer.innerHTML = html;
@@ -132,7 +129,7 @@ class OfficeDoc {
         });
     }
     generateDocument(fileName) {
-        loadFile(__classPrivateFieldGet(this, _OfficeDoc_url, "f"), (error, content) => __awaiter(this, void 0, void 0, function* () {
+        loadFile(this.url, (error, content) => __awaiter(this, void 0, void 0, function* () {
             if (error) {
                 throw error;
             }
@@ -146,7 +143,7 @@ class OfficeDoc {
                     end: '}}'
                 }
             });
-            doc.render(Object.assign({}, __classPrivateFieldGet(this, _OfficeDoc_params, "f")));
+            doc.render(Object.assign({}, this.getParams()));
             const out = doc.getZip().generate({
                 type: 'blob',
                 mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -154,9 +151,6 @@ class OfficeDoc {
             (0, file_saver_1.saveAs)(out, `${fileName}.docx`);
         }));
     }
-    getResult() {
-        return __classPrivateFieldGet(this, _OfficeDoc_params, "f");
-    }
 }
-_OfficeDoc_url = new WeakMap(), _OfficeDoc_params = new WeakMap(), _OfficeDoc_setting = new WeakMap();
+_OfficeDoc_setting = new WeakMap();
 exports.default = OfficeDoc;

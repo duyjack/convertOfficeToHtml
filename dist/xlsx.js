@@ -52,10 +52,14 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 };
-var _SettingXlsx_smallInputSize, _SettingXlsx_mediumInputSize, _SettingXlsx_largeInputSize, _SettingXlsx_containsTextSmallInput, _SettingXlsx_containsTextMediumInput, _SettingXlsx_containsTextLargeInput, _Xlsx_url, _Xlsx_params, _Xlsx_setting;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+var _SettingXlsx_smallInputSize, _SettingXlsx_mediumInputSize, _SettingXlsx_largeInputSize, _SettingXlsx_containsTextSmallInput, _SettingXlsx_containsTextMediumInput, _SettingXlsx_containsTextLargeInput, _Xlsx_setting;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettingXlsx = void 0;
 const xlsx = __importStar(require("xlsx"));
+const office_1 = __importDefault(require("./base/office"));
 class SettingXlsx {
     constructor() {
         _SettingXlsx_smallInputSize.set(this, 20);
@@ -96,18 +100,15 @@ class SettingXlsx {
 }
 exports.SettingXlsx = SettingXlsx;
 _SettingXlsx_smallInputSize = new WeakMap(), _SettingXlsx_mediumInputSize = new WeakMap(), _SettingXlsx_largeInputSize = new WeakMap(), _SettingXlsx_containsTextSmallInput = new WeakMap(), _SettingXlsx_containsTextMediumInput = new WeakMap(), _SettingXlsx_containsTextLargeInput = new WeakMap();
-class Xlsx {
+class Xlsx extends office_1.default {
     constructor(url, setting) {
-        _Xlsx_url.set(this, void 0);
-        _Xlsx_params.set(this, void 0); // key: value of doc
+        super(url, {});
         _Xlsx_setting.set(this, void 0);
-        __classPrivateFieldSet(this, _Xlsx_url, url, "f");
-        __classPrivateFieldSet(this, _Xlsx_params, {}, "f");
         __classPrivateFieldSet(this, _Xlsx_setting, setting, "f");
     }
     convertXlsx2Html(container) {
         return __awaiter(this, void 0, void 0, function* () {
-            const url = __classPrivateFieldGet(this, _Xlsx_url, "f");
+            const url = this.url;
             try {
                 // Fetch tệp Excel từ URL
                 const response = yield fetch(url);
@@ -128,7 +129,8 @@ class Xlsx {
                 console.log('textReplaces', textReplaces);
                 for (let text of textReplaces) {
                     let width = '10px';
-                    __classPrivateFieldGet(this, _Xlsx_params, "f")[`${text}`] = '';
+                    const key = text.replace('>{{', '').replace('}}<', '');
+                    this.initKeyWhenNoValue(key);
                     if (__classPrivateFieldGet(this, _Xlsx_setting, "f").containsTextSmallInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _Xlsx_setting, "f").smallInputSize}px`;
                     }
@@ -141,7 +143,8 @@ class Xlsx {
                     else {
                         width = `${__classPrivateFieldGet(this, _Xlsx_setting, "f").mediumInputSize}px`;
                     }
-                    const component = `> <input type='text' style='width: ${width}'/><`;
+                    const idElement = this.generateIdElement(key);
+                    const component = `> <input id=${idElement} type='text' style='width: ${width}'/><`;
                     html = html.replace(text, component);
                 }
                 // Hiển thị HTML
@@ -154,5 +157,5 @@ class Xlsx {
         });
     }
 }
-_Xlsx_url = new WeakMap(), _Xlsx_params = new WeakMap(), _Xlsx_setting = new WeakMap();
+_Xlsx_setting = new WeakMap();
 exports.default = Xlsx;
