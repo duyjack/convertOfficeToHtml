@@ -22,9 +22,9 @@ export declare class BaseSetting {
         containsTextSmallInput?: string[];
         containsTextMediumInput?: string[];
         containsTextLargeInput?: string[];
-        styleSmallTextInput: any;
-        styleMediumTextInput: any;
-        styleLargeTextInput: any;
+        styleSmallTextInput?: any;
+        styleMediumTextInput?: any;
+        styleLargeTextInput?: any;
     }): void;
 }
 export default class BaseOffice<T> {
@@ -34,7 +34,7 @@ export default class BaseOffice<T> {
     protected initKeyWhenNoValue(key: string): void;
     loadToHtml(container: HTMLElement): Promise<void>;
     resetParams(): void;
-    generateIdElement(key: string): string;
+    protected generateIdElement(key: string): string;
     getParams(): T;
     updateParams(key: string, value: any): void;
     onChangeValueInput(callback?: (key: string, value: any) => void): void;
