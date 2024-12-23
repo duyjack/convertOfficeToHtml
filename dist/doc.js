@@ -98,22 +98,27 @@ class OfficeDoc extends office_1.default {
                 console.log('textReplaces', textReplaces);
                 for (let text of textReplaces) {
                     let width = '10px';
+                    let style;
                     const key = `${text}`;
                     this.initKeyWhenNoValue(key);
                     if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsSmallTextInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").smallInputSize}px`;
+                        style = __classPrivateFieldGet(this, _OfficeDoc_setting, "f").styleSmallTextInput;
                     }
                     else if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsMediumTextInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").mediumInputSize}px`;
+                        style = __classPrivateFieldGet(this, _OfficeDoc_setting, "f").styleMediumTextInput;
                     }
                     else if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsLargeTextInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").largeInputSize}px`;
+                        style = __classPrivateFieldGet(this, _OfficeDoc_setting, "f").styleLargeTextInput;
                     }
                     else {
                         width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").mediumInputSize}px`;
                     }
+                    const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
                     const idElement = this.generateIdElement(key);
-                    const component = ` <input id=${idElement} type='text' style='width: ${width}'/>`;
+                    const component = ` <input id=${idElement} type='text' style=${styleComponent}/>`;
                     html = html.replace(text, component);
                 }
                 // console.log('html', html);

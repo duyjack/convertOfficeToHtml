@@ -89,22 +89,27 @@ class Xlsx extends office_1.default {
                 console.log('textReplaces', textReplaces);
                 for (let text of textReplaces) {
                     let width = '10px';
+                    let style;
                     const key = text.replace('>{{', '').replace('}}<', '');
                     this.initKeyWhenNoValue(key);
-                    if (__classPrivateFieldGet(this, _Xlsx_setting, "f").containsTextSmallInput.some(txt => text.includes(txt))) {
+                    if (__classPrivateFieldGet(this, _Xlsx_setting, "f").containsSmallTextInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _Xlsx_setting, "f").smallInputSize}px`;
+                        style = __classPrivateFieldGet(this, _Xlsx_setting, "f").styleSmallTextInput;
                     }
-                    else if (__classPrivateFieldGet(this, _Xlsx_setting, "f").containsTextMediumInput.some(txt => text.includes(txt))) {
+                    else if (__classPrivateFieldGet(this, _Xlsx_setting, "f").containsMediumTextInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _Xlsx_setting, "f").mediumInputSize}px`;
+                        style = __classPrivateFieldGet(this, _Xlsx_setting, "f").styleMediumTextInput;
                     }
-                    else if (__classPrivateFieldGet(this, _Xlsx_setting, "f").containsTextLargeInput.some(txt => text.includes(txt))) {
+                    else if (__classPrivateFieldGet(this, _Xlsx_setting, "f").containsLargeTextInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _Xlsx_setting, "f").largeInputSize}px`;
+                        style = __classPrivateFieldGet(this, _Xlsx_setting, "f").styleLargeTextInput;
                     }
                     else {
                         width = `${__classPrivateFieldGet(this, _Xlsx_setting, "f").mediumInputSize}px`;
                     }
                     const idElement = this.generateIdElement(key);
-                    const component = `> <input id=${idElement} type='text' style='width: ${width}'/><`;
+                    const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
+                    const component = `> <input id=${idElement} type='text' style='${styleComponent}'/><`;
                     html = html.replace(text, component);
                 }
                 // Hiển thị HTML

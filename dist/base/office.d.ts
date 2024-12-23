@@ -6,9 +6,9 @@ export declare class BaseSetting {
     get containsSmallTextInput(): string[];
     get containsMediumTextInput(): string[];
     get containsLargeTextInput(): string[];
-    get styleSmallTextInput(): any;
-    get styleMediumTextInput(): any;
-    get styleLargeTextInput(): any;
+    get styleSmallTextInput(): string | undefined;
+    get styleMediumTextInput(): string | undefined;
+    get styleLargeTextInput(): string | undefined;
     config(options: {
         smallInputSize?: number;
         mediumInputSize?: number;
