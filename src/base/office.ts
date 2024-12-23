@@ -74,9 +74,9 @@ export class BaseSetting {
         containsTextMediumInput?: string[],
         containsTextLargeInput?: string[],
 
-        styleSmallTextInput: any,
-        styleMediumTextInput: any,
-        styleLargeTextInput: any,
+        styleSmallTextInput?: any,
+        styleMediumTextInput?: any,
+        styleLargeTextInput?: any,
     }) {
         this.#smallInputSize = options.smallInputSize ?? 20;
         this.#mediumInputSize = options.mediumInputSize ?? 30;
@@ -120,7 +120,7 @@ export default class BaseOffice<T> {
         this.#params = {};
     }
 
-    generateIdElement(key: string) {
+    protected generateIdElement(key: string) {
         return `${PrefixId.input}_${key}`;
     }
 
