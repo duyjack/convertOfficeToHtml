@@ -4,62 +4,11 @@ import PizZipUtils from 'pizzip/utils/index.js';
 import expressionParser from 'docxtemplater/expressions';
 import mammoth from 'mammoth';
 import { saveAs } from 'file-saver';
-import BaseOffice from './base/office';
+import BaseOffice, { BaseSetting } from './base/office';
 import { PrefixId } from './enum';
 
-export class SettingDoc {
-    #smallInputSize: number = 20;
-    #mediumInputSize: number = 30;
-    #largeInputSize: number = 75;
-
-    #containsTextSmallInput: string[] = [];
-    #containsTextMediumInput: string[] = [];
-    #containsTextLargeInput: string[] = [];
-
-    get smallInputSize(): number {
-        return this.#smallInputSize;
-    }
-
-    get mediumInputSize(): number {
-        return this.#mediumInputSize;
-    }
-
-    get largeInputSize(): number {
-        return this.#largeInputSize;
-    }
-
-
-    ///
-    get containsTextSmallInput(): string[] {
-        return this.#containsTextSmallInput;
-    }
-
-    get containsTextMediumInput(): string[] {
-        return this.#containsTextMediumInput;
-    }
-
-    get containsTextLargeInput(): string[] {
-        return this.#containsTextLargeInput;
-    }
-
-
-    config(options: {
-        smallInputSize?: number,
-        mediumInputSize?: number,
-        largeInputSize?: number,
-
-        containsTextSmallInput?: string[],
-        containsTextMediumInput?: string[],
-        containsTextLargeInput?: string[],
-    }) {
-        this.#smallInputSize = options.smallInputSize ?? 20;
-        this.#mediumInputSize = options.mediumInputSize ?? 30;
-        this.#largeInputSize = options.largeInputSize ?? 30;
-
-        this.#containsTextSmallInput = options?.containsTextSmallInput ?? [];
-        this.#containsTextMediumInput = options?.containsTextMediumInput ?? [];
-        this.#containsTextLargeInput = options?.containsTextLargeInput ?? [];
-    }
+export class SettingDoc extends BaseSetting {
+    
 }
 
 function loadFile(url: string, callback: (err: Error, content: string) => void) {
@@ -96,11 +45,11 @@ export default class OfficeDoc<T> extends BaseOffice<T> {
                     let width = '10px';
                     const key = `${text}`;
                     this.initKeyWhenNoValue(key);
-                    if (this.#setting.containsTextSmallInput.some(txt => text.includes(txt))) {
+                    if (this.#setting.containsSmallTextInput.some(txt => text.includes(txt))) {
                         width = `${this.#setting.smallInputSize}px`;
-                    } else if (this.#setting.containsTextMediumInput.some(txt => text.includes(txt))) {
+                    } else if (this.#setting.containsMediumTextInput.some(txt => text.includes(txt))) {
                         width = `${this.#setting.mediumInputSize}px`;
-                    } else if (this.#setting.containsTextLargeInput.some(txt => text.includes(txt))) {
+                    } else if (this.#setting.containsLargeTextInput.some(txt => text.includes(txt))) {
                         width = `${this.#setting.largeInputSize}px`;
                     } else {
                         width = `${this.#setting.mediumInputSize}px`;

@@ -1,60 +1,9 @@
 import * as xlsx from 'xlsx';
 import { PrefixId } from './enum';
-import BaseOffice from './base/office';
+import BaseOffice, { BaseSetting } from './base/office';
 
-export class SettingXlsx {
-    #smallInputSize: number = 20;
-    #mediumInputSize: number = 30;
-    #largeInputSize: number = 75;
-
-    #containsTextSmallInput: string[] = [];
-    #containsTextMediumInput: string[] = [];
-    #containsTextLargeInput: string[] = [];
-
-    get smallInputSize(): number {
-        return this.#smallInputSize;
-    }
-
-    get mediumInputSize(): number {
-        return this.#mediumInputSize;
-    }
-
-    get largeInputSize(): number {
-        return this.#largeInputSize;
-    }
-
-
-    ///
-    get containsTextSmallInput(): string[] {
-        return this.#containsTextSmallInput;
-    }
-
-    get containsTextMediumInput(): string[] {
-        return this.#containsTextMediumInput;
-    }
-
-    get containsTextLargeInput(): string[] {
-        return this.#containsTextLargeInput;
-    }
-
-
-    config(options: {
-        smallInputSize?: number,
-        mediumInputSize?: number,
-        largeInputSize?: number,
-
-        containsTextSmallInput?: string[],
-        containsTextMediumInput?: string[],
-        containsTextLargeInput?: string[],
-    }) {
-        this.#smallInputSize = options.smallInputSize ?? 20;
-        this.#mediumInputSize = options.mediumInputSize ?? 30;
-        this.#largeInputSize = options.largeInputSize ?? 30;
-
-        this.#containsTextSmallInput = options?.containsTextSmallInput ?? [];
-        this.#containsTextMediumInput = options?.containsTextMediumInput ?? [];
-        this.#containsTextLargeInput = options?.containsTextLargeInput ?? [];
-    }
+export class SettingXlsx extends BaseSetting {
+    
 }
 
 export default class Xlsx<T> extends BaseOffice<T> {
