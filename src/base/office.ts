@@ -1,6 +1,12 @@
 import { PrefixId } from "../enum";
 
+export interface Delimiters {
+    start: string;
+    end: string;
+}
 export class BaseSetting {
+    #delimiters: Delimiters;
+
     #smallInputSize: number = 20;
     #mediumInputSize: number = 30;
     #largeInputSize: number = 75;
@@ -12,6 +18,10 @@ export class BaseSetting {
     #styleSmallTextInput?: string;
     #styleMediumTextInput?: string;
     #styleLargeTextInput?: string;
+
+    get delimiters(): Delimiters {
+        return this.#delimiters;
+    }
 
     get smallInputSize(): number {
         return this.#smallInputSize;
@@ -49,6 +59,10 @@ export class BaseSetting {
 
     get styleLargeTextInput(): string | undefined {
         return this.#styleLargeTextInput;
+    }
+
+    constructor(delimiters: Delimiters){
+        this.#delimiters = delimiters;
     }
 
     config(options: {
@@ -98,6 +112,10 @@ export default class BaseOffice<T> {
         }
     }
 
+    loadToHtml(container: HTMLElement): Promise<void> {
+        throw new Error ('no implement');
+    }
+
     resetParams() {
         this.#params = {};
     }
@@ -119,14 +137,22 @@ export default class BaseOffice<T> {
         }
     }
 
-    onChangeValueInput(callback: (key: string, value: any) => void): void {
+    onChangeValueInput(callback?: (key: string, value: any) => void): void {
         Object.keys(this.#params).forEach(key => {
             const idElement = this.generateIdElement(key);
-            const element = document.getElementById(idElement) as HTMLInputElement;
-            element?.addEventListener('change', (e) => {
-                callback(key, (e.target as HTMLInputElement).value);
+            const element = document.getElementById(idElement) as HTMLInputElement | HTMLTextAreaElement;
+            element?.addEventListener('input', (e) => {
+                const value = (e.target as HTMLInputElement).value;
+                if (callback) {
+                    callback(key, value);
+                }
+                this.updateParams(key, value);
             });
         })
+    }
+
+    saveFileWithParams(fileName: string): Promise<void> {
+        throw new Error ('no implement');
     }
 
 }
