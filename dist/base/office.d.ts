@@ -1,3 +1,26 @@
+export declare class BaseSetting {
+    #private;
+    get smallInputSize(): number;
+    get mediumInputSize(): number;
+    get largeInputSize(): number;
+    get containsSmallTextInput(): string[];
+    get containsMediumTextInput(): string[];
+    get containsLargeTextInput(): string[];
+    get styleSmallTextInput(): any;
+    get styleMediumTextInput(): any;
+    get styleLargeTextInput(): any;
+    config(options: {
+        smallInputSize?: number;
+        mediumInputSize?: number;
+        largeInputSize?: number;
+        containsTextSmallInput?: string[];
+        containsTextMediumInput?: string[];
+        containsTextLargeInput?: string[];
+        styleSmallTextInput: any;
+        styleMediumTextInput: any;
+        styleLargeTextInput: any;
+    }): void;
+}
 export default class BaseOffice<T> {
     #private;
     constructor(url: string, params: T);
