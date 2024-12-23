@@ -43,19 +43,24 @@ export default class Xlsx<T> extends BaseOffice<T> {
             console.log('textReplaces', textReplaces);
             for (let text of textReplaces as Array<string>) {
                 let width = '10px';
+                let style: string | undefined;
                 const key = text.replace('>{{', '').replace('}}<', '');
                 this.initKeyWhenNoValue(key);
-                if (this.#setting.containsTextSmallInput.some(txt => text.includes(txt))) {
+                if (this.#setting.containsSmallTextInput.some(txt => text.includes(txt))) {
                     width = `${this.#setting.smallInputSize}px`;
-                } else if (this.#setting.containsTextMediumInput.some(txt => text.includes(txt))) {
+                    style = this.#setting.styleSmallTextInput;
+                } else if (this.#setting.containsMediumTextInput.some(txt => text.includes(txt))) {
                     width = `${this.#setting.mediumInputSize}px`;
-                } else if (this.#setting.containsTextLargeInput.some(txt => text.includes(txt))) {
+                    style = this.#setting.styleMediumTextInput;
+                } else if (this.#setting.containsLargeTextInput.some(txt => text.includes(txt))) {
                     width = `${this.#setting.largeInputSize}px`;
+                    style = this.#setting.styleLargeTextInput;
                 } else {
                     width = `${this.#setting.mediumInputSize}px`;
                 }
                 const idElement = this.generateIdElement(key);
-                const component = `> <input id=${idElement} type='text' style='width: ${width}'/><`;
+                const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
+                const component = `> <input id=${idElement} type='text' style='${styleComponent}'/><`;
                 html = html.replace(text, component);
             }
 

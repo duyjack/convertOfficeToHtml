@@ -9,9 +9,9 @@ export class BaseSetting {
     #containsMediumTextInput: string[] = [];
     #containsLargeTextInput: string[] = [];
 
-    #styleSmallTextInput: any;
-    #styleMediumTextInput: any;
-    #styleLargeTextInput: any;
+    #styleSmallTextInput?: string;
+    #styleMediumTextInput?: string;
+    #styleLargeTextInput?: string;
 
     get smallInputSize(): number {
         return this.#smallInputSize;
@@ -39,15 +39,15 @@ export class BaseSetting {
     }
 
     /// style
-    get styleSmallTextInput(): any {
+    get styleSmallTextInput(): string | undefined {
         return this.#styleSmallTextInput;
     }
 
-    get styleMediumTextInput(): any {
+    get styleMediumTextInput(): string | undefined {
         return this.#styleMediumTextInput;
     }
 
-    get styleLargeTextInput(): any {
+    get styleLargeTextInput(): string | undefined {
         return this.#styleLargeTextInput;
     }
 

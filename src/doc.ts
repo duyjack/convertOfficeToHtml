@@ -43,19 +43,24 @@ export default class OfficeDoc<T> extends BaseOffice<T> {
                 console.log('textReplaces', textReplaces);
                 for (let text of textReplaces as Array<string>) {
                     let width = '10px';
+                    let style: string | undefined;
                     const key = `${text}`;
                     this.initKeyWhenNoValue(key);
                     if (this.#setting.containsSmallTextInput.some(txt => text.includes(txt))) {
                         width = `${this.#setting.smallInputSize}px`;
+                        style = this.#setting.styleSmallTextInput;
                     } else if (this.#setting.containsMediumTextInput.some(txt => text.includes(txt))) {
                         width = `${this.#setting.mediumInputSize}px`;
+                        style = this.#setting.styleMediumTextInput;
                     } else if (this.#setting.containsLargeTextInput.some(txt => text.includes(txt))) {
                         width = `${this.#setting.largeInputSize}px`;
+                        style = this.#setting.styleLargeTextInput;
                     } else {
                         width = `${this.#setting.mediumInputSize}px`;
                     }
+                    const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
                     const idElement = this.generateIdElement(key);
-                    const component = ` <input id=${idElement} type='text' style='width: ${width}'/>`;
+                    const component = ` <input id=${idElement} type='text' style=${styleComponent}/>`;
                     html = html.replace(text, component);
                 }
                 // console.log('html', html);
