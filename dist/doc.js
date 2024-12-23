@@ -65,6 +65,7 @@ const expressions_1 = __importDefault(require("docxtemplater/expressions"));
 const mammoth_1 = __importDefault(require("mammoth"));
 const file_saver_1 = require("file-saver");
 const office_1 = __importStar(require("./base/office"));
+const utils_1 = require("./utils");
 class SettingDoc extends office_1.BaseSetting {
 }
 exports.SettingDoc = SettingDoc;
@@ -79,80 +80,89 @@ class OfficeDoc extends office_1.default {
     }
     loadToHtml(container) {
         return __awaiter(this, void 0, void 0, function* () {
-            // const url = 'https://gomeetv3.vnptit.vn/storage/test/TT18_3.docx';
-            const url = this.url;
-            let arrayBuffer;
-            try {
-                const response = yield fetch(url);
-                arrayBuffer = yield response.arrayBuffer();
-                this.resetParams();
-            }
-            catch (err) {
-                throw err;
-            }
-            mammoth_1.default.convertToHtml({ arrayBuffer: arrayBuffer })
-                .then((result) => {
-                var html = result.value; // The generated HTML
-                const pdfContainer = container;
-                const textReplaces = html.match(/{{\s*[\w.]+\s*}}/g);
-                console.log('textReplaces', textReplaces);
-                for (let text of textReplaces) {
-                    let width = '10px';
-                    let style;
-                    let componentName = 'input';
-                    const key = `${text}`;
-                    this.initKeyWhenNoValue(key);
-                    if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsSmallTextInput.some(txt => text.includes(txt))) {
-                        width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").smallInputSize}px`;
-                        style = __classPrivateFieldGet(this, _OfficeDoc_setting, "f").styleSmallTextInput;
-                    }
-                    else if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsMediumTextInput.some(txt => text.includes(txt))) {
-                        width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").mediumInputSize}px`;
-                        style = __classPrivateFieldGet(this, _OfficeDoc_setting, "f").styleMediumTextInput;
-                    }
-                    else if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsLargeTextInput.some(txt => text.includes(txt))) {
-                        width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").largeInputSize}px`;
-                        style = __classPrivateFieldGet(this, _OfficeDoc_setting, "f").styleLargeTextInput;
-                        componentName = 'textarea';
-                    }
-                    else {
-                        width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").mediumInputSize}px`;
-                    }
-                    const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
-                    const idElement = this.generateIdElement(key);
-                    const component = ` <${componentName} id=${idElement} type='text' style='${styleComponent}'></${componentName}>`;
-                    html = html.replace(text, component);
+            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                const url = this.url;
+                let arrayBuffer;
+                try {
+                    const response = yield fetch(url);
+                    arrayBuffer = yield response.arrayBuffer();
+                    this.resetParams();
                 }
-                // console.log('html', html);
-                pdfContainer.innerHTML = html;
-            })
-                .catch((error) => {
-                console.error(error);
-            });
+                catch (err) {
+                    throw err;
+                }
+                mammoth_1.default.convertToHtml({ arrayBuffer: arrayBuffer })
+                    .then((result) => {
+                    var html = result.value; // The generated HTML
+                    const pdfContainer = container;
+                    // const textReplaces = html.match(/{{\s*[\w.]+\s*}}/g);
+                    const regex = (0, utils_1.generateDynamicRegex)(__classPrivateFieldGet(this, _OfficeDoc_setting, "f").delimiters.start, __classPrivateFieldGet(this, _OfficeDoc_setting, "f").delimiters.end);
+                    const textReplaces = html.match(regex);
+                    // console.log('textReplaces', textReplaces);
+                    for (let text of textReplaces) {
+                        let width = '10px';
+                        let style;
+                        let componentName = 'input';
+                        const key = `${text.replace('{{', '').replace('}}', '')}`;
+                        this.initKeyWhenNoValue(key);
+                        if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsSmallTextInput.some(txt => text.includes(txt))) {
+                            width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").smallInputSize}px`;
+                            style = __classPrivateFieldGet(this, _OfficeDoc_setting, "f").styleSmallTextInput;
+                        }
+                        else if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsMediumTextInput.some(txt => text.includes(txt))) {
+                            width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").mediumInputSize}px`;
+                            style = __classPrivateFieldGet(this, _OfficeDoc_setting, "f").styleMediumTextInput;
+                        }
+                        else if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsLargeTextInput.some(txt => text.includes(txt))) {
+                            width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").largeInputSize}px`;
+                            style = __classPrivateFieldGet(this, _OfficeDoc_setting, "f").styleLargeTextInput;
+                            componentName = 'textarea';
+                        }
+                        else {
+                            width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").mediumInputSize}px`;
+                        }
+                        const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
+                        const idElement = this.generateIdElement(key);
+                        const component = ` <${componentName} id=${idElement} type='text' style='${styleComponent}'></${componentName}>`;
+                        html = html.replace(text, component);
+                    }
+                    // console.log('html', html);
+                    pdfContainer.innerHTML = html;
+                    resolve();
+                })
+                    .catch((error) => {
+                    console.error(error);
+                    reject(error);
+                });
+            }));
         });
     }
-    generateDocument(fileName) {
-        loadFile(this.url, (error, content) => __awaiter(this, void 0, void 0, function* () {
-            if (error) {
-                throw error;
-            }
-            const zip = new pizzip_1.default(content);
-            const doc = new docxtemplater_1.default(zip, {
-                paragraphLoop: true,
-                linebreaks: true,
-                parser: expressions_1.default,
-                delimiters: {
-                    start: '{{',
-                    end: '}}'
+    saveFileWithParams(fileName) {
+        return new Promise((resolve, reject) => {
+            loadFile(this.url, (error, content) => __awaiter(this, void 0, void 0, function* () {
+                if (error) {
+                    reject(error);
+                    return;
                 }
-            });
-            doc.render(Object.assign({}, this.getParams()));
-            const out = doc.getZip().generate({
-                type: 'blob',
-                mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            }); //Output the document using Data-URI
-            (0, file_saver_1.saveAs)(out, `${fileName}.docx`);
-        }));
+                const zip = new pizzip_1.default(content);
+                const doc = new docxtemplater_1.default(zip, {
+                    paragraphLoop: true,
+                    linebreaks: true,
+                    parser: expressions_1.default,
+                    delimiters: {
+                        start: __classPrivateFieldGet(this, _OfficeDoc_setting, "f").delimiters.start,
+                        end: __classPrivateFieldGet(this, _OfficeDoc_setting, "f").delimiters.end,
+                    }
+                });
+                doc.render(Object.assign({}, this.getParams()));
+                const out = doc.getZip().generate({
+                    type: 'blob',
+                    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                }); //Output the document using Data-URI
+                (0, file_saver_1.saveAs)(out, `${fileName}.docx`);
+                resolve();
+            }));
+        });
     }
 }
 _OfficeDoc_setting = new WeakMap();

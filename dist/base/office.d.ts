@@ -1,5 +1,10 @@
+export interface Delimiters {
+    start: string;
+    end: string;
+}
 export declare class BaseSetting {
     #private;
+    get delimiters(): Delimiters;
     get smallInputSize(): number;
     get mediumInputSize(): number;
     get largeInputSize(): number;
@@ -9,6 +14,7 @@ export declare class BaseSetting {
     get styleSmallTextInput(): string | undefined;
     get styleMediumTextInput(): string | undefined;
     get styleLargeTextInput(): string | undefined;
+    constructor(delimiters: Delimiters);
     config(options: {
         smallInputSize?: number;
         mediumInputSize?: number;
@@ -26,9 +32,11 @@ export default class BaseOffice<T> {
     constructor(url: string, params: T);
     protected get url(): string;
     protected initKeyWhenNoValue(key: string): void;
+    loadToHtml(container: HTMLElement): Promise<void>;
     resetParams(): void;
     generateIdElement(key: string): string;
     getParams(): T;
     updateParams(key: string, value: any): void;
-    onChangeValueInput(callback: (key: string, value: any) => void): void;
+    onChangeValueInput(callback?: (key: string, value: any) => void): void;
+    saveFileWithParams(fileName: string): Promise<void>;
 }

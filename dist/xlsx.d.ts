@@ -4,5 +4,6 @@ export declare class SettingXlsx extends BaseSetting {
 export default class Xlsx<T> extends BaseOffice<T> {
     #private;
     constructor(url: string, setting: SettingXlsx);
-    convertXlsx2Html(container: HTMLElement): Promise<void>;
+    loadToHtml(container: HTMLElement): Promise<void>;
+    saveFileWithParams(fileName: string): Promise<void>;
 }

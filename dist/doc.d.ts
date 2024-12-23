@@ -5,5 +5,5 @@ export default class OfficeDoc<T> extends BaseOffice<T> {
     #private;
     constructor(url: string, setting: SettingDoc);
     loadToHtml(container: HTMLElement): Promise<void>;
-    generateDocument(fileName: string): void;
+    saveFileWithParams(fileName: string): Promise<void>;
 }

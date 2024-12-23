@@ -10,21 +10,13 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 };
-var _BaseSetting_smallInputSize, _BaseSetting_mediumInputSize, _BaseSetting_largeInputSize, _BaseSetting_containsSmallTextInput, _BaseSetting_containsMediumTextInput, _BaseSetting_containsLargeTextInput, _BaseSetting_styleSmallTextInput, _BaseSetting_styleMediumTextInput, _BaseSetting_styleLargeTextInput, _BaseOffice_url, _BaseOffice_params;
+var _BaseSetting_delimiters, _BaseSetting_smallInputSize, _BaseSetting_mediumInputSize, _BaseSetting_largeInputSize, _BaseSetting_containsSmallTextInput, _BaseSetting_containsMediumTextInput, _BaseSetting_containsLargeTextInput, _BaseSetting_styleSmallTextInput, _BaseSetting_styleMediumTextInput, _BaseSetting_styleLargeTextInput, _BaseOffice_url, _BaseOffice_params;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BaseSetting = void 0;
 const enum_1 = require("../enum");
 class BaseSetting {
-    constructor() {
-        _BaseSetting_smallInputSize.set(this, 20);
-        _BaseSetting_mediumInputSize.set(this, 30);
-        _BaseSetting_largeInputSize.set(this, 75);
-        _BaseSetting_containsSmallTextInput.set(this, []);
-        _BaseSetting_containsMediumTextInput.set(this, []);
-        _BaseSetting_containsLargeTextInput.set(this, []);
-        _BaseSetting_styleSmallTextInput.set(this, void 0);
-        _BaseSetting_styleMediumTextInput.set(this, void 0);
-        _BaseSetting_styleLargeTextInput.set(this, void 0);
+    get delimiters() {
+        return __classPrivateFieldGet(this, _BaseSetting_delimiters, "f");
     }
     get smallInputSize() {
         return __classPrivateFieldGet(this, _BaseSetting_smallInputSize, "f");
@@ -55,6 +47,19 @@ class BaseSetting {
     get styleLargeTextInput() {
         return __classPrivateFieldGet(this, _BaseSetting_styleLargeTextInput, "f");
     }
+    constructor(delimiters) {
+        _BaseSetting_delimiters.set(this, void 0);
+        _BaseSetting_smallInputSize.set(this, 20);
+        _BaseSetting_mediumInputSize.set(this, 30);
+        _BaseSetting_largeInputSize.set(this, 75);
+        _BaseSetting_containsSmallTextInput.set(this, []);
+        _BaseSetting_containsMediumTextInput.set(this, []);
+        _BaseSetting_containsLargeTextInput.set(this, []);
+        _BaseSetting_styleSmallTextInput.set(this, void 0);
+        _BaseSetting_styleMediumTextInput.set(this, void 0);
+        _BaseSetting_styleLargeTextInput.set(this, void 0);
+        __classPrivateFieldSet(this, _BaseSetting_delimiters, delimiters, "f");
+    }
     config(options) {
         var _a, _b, _c, _d, _e, _f;
         __classPrivateFieldSet(this, _BaseSetting_smallInputSize, (_a = options.smallInputSize) !== null && _a !== void 0 ? _a : 20, "f");
@@ -69,7 +74,7 @@ class BaseSetting {
     }
 }
 exports.BaseSetting = BaseSetting;
-_BaseSetting_smallInputSize = new WeakMap(), _BaseSetting_mediumInputSize = new WeakMap(), _BaseSetting_largeInputSize = new WeakMap(), _BaseSetting_containsSmallTextInput = new WeakMap(), _BaseSetting_containsMediumTextInput = new WeakMap(), _BaseSetting_containsLargeTextInput = new WeakMap(), _BaseSetting_styleSmallTextInput = new WeakMap(), _BaseSetting_styleMediumTextInput = new WeakMap(), _BaseSetting_styleLargeTextInput = new WeakMap();
+_BaseSetting_delimiters = new WeakMap(), _BaseSetting_smallInputSize = new WeakMap(), _BaseSetting_mediumInputSize = new WeakMap(), _BaseSetting_largeInputSize = new WeakMap(), _BaseSetting_containsSmallTextInput = new WeakMap(), _BaseSetting_containsMediumTextInput = new WeakMap(), _BaseSetting_containsLargeTextInput = new WeakMap(), _BaseSetting_styleSmallTextInput = new WeakMap(), _BaseSetting_styleMediumTextInput = new WeakMap(), _BaseSetting_styleLargeTextInput = new WeakMap();
 class BaseOffice {
     constructor(url, params) {
         _BaseOffice_url.set(this, void 0);
@@ -84,6 +89,9 @@ class BaseOffice {
         if (!__classPrivateFieldGet(this, _BaseOffice_params, "f")[`${key}`]) {
             __classPrivateFieldGet(this, _BaseOffice_params, "f")[`${key}`] = '';
         }
+    }
+    loadToHtml(container) {
+        throw new Error('no implement');
     }
     resetParams() {
         __classPrivateFieldSet(this, _BaseOffice_params, {}, "f");
@@ -106,10 +114,17 @@ class BaseOffice {
         Object.keys(__classPrivateFieldGet(this, _BaseOffice_params, "f")).forEach(key => {
             const idElement = this.generateIdElement(key);
             const element = document.getElementById(idElement);
-            element === null || element === void 0 ? void 0 : element.addEventListener('change', (e) => {
-                callback(key, e.target.value);
+            element === null || element === void 0 ? void 0 : element.addEventListener('input', (e) => {
+                const value = e.target.value;
+                if (callback) {
+                    callback(key, value);
+                }
+                this.updateParams(key, value);
             });
         });
+    }
+    saveFileWithParams(fileName) {
+        throw new Error('no implement');
     }
 }
 _BaseOffice_url = new WeakMap(), _BaseOffice_params = new WeakMap();
