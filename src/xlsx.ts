@@ -43,6 +43,7 @@ export default class Xlsx<T> extends BaseOffice<T> {
             console.log('textReplaces', textReplaces);
             for (let text of textReplaces as Array<string>) {
                 let width = '10px';
+                let componentName = 'input';
                 let style: string | undefined;
                 const key = text.replace('>{{', '').replace('}}<', '');
                 this.initKeyWhenNoValue(key);
@@ -55,12 +56,13 @@ export default class Xlsx<T> extends BaseOffice<T> {
                 } else if (this.#setting.containsLargeTextInput.some(txt => text.includes(txt))) {
                     width = `${this.#setting.largeInputSize}px`;
                     style = this.#setting.styleLargeTextInput;
+                    componentName = 'textarea';
                 } else {
                     width = `${this.#setting.mediumInputSize}px`;
                 }
                 const idElement = this.generateIdElement(key);
                 const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
-                const component = `> <input id=${idElement} type='text' style='${styleComponent}'/><`;
+                const component = `> <${componentName} id=${idElement} type='text' style='${styleComponent}'></${componentName}><`;
                 html = html.replace(text, component);
             }
 

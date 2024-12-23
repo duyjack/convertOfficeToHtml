@@ -44,6 +44,7 @@ export default class OfficeDoc<T> extends BaseOffice<T> {
                 for (let text of textReplaces as Array<string>) {
                     let width = '10px';
                     let style: string | undefined;
+                    let componentName = 'input';
                     const key = `${text}`;
                     this.initKeyWhenNoValue(key);
                     if (this.#setting.containsSmallTextInput.some(txt => text.includes(txt))) {
@@ -55,12 +56,13 @@ export default class OfficeDoc<T> extends BaseOffice<T> {
                     } else if (this.#setting.containsLargeTextInput.some(txt => text.includes(txt))) {
                         width = `${this.#setting.largeInputSize}px`;
                         style = this.#setting.styleLargeTextInput;
+                        componentName = 'textarea';
                     } else {
                         width = `${this.#setting.mediumInputSize}px`;
                     }
                     const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
                     const idElement = this.generateIdElement(key);
-                    const component = ` <input id=${idElement} type='text' style=${styleComponent}/>`;
+                    const component = ` <${componentName} id=${idElement} type='text' style='${styleComponent}'></${componentName}>`;
                     html = html.replace(text, component);
                 }
                 // console.log('html', html);
