@@ -99,6 +99,7 @@ class OfficeDoc extends office_1.default {
                 for (let text of textReplaces) {
                     let width = '10px';
                     let style;
+                    let componentName = 'input';
                     const key = `${text}`;
                     this.initKeyWhenNoValue(key);
                     if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsSmallTextInput.some(txt => text.includes(txt))) {
@@ -112,13 +113,14 @@ class OfficeDoc extends office_1.default {
                     else if (__classPrivateFieldGet(this, _OfficeDoc_setting, "f").containsLargeTextInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").largeInputSize}px`;
                         style = __classPrivateFieldGet(this, _OfficeDoc_setting, "f").styleLargeTextInput;
+                        componentName = 'textarea';
                     }
                     else {
                         width = `${__classPrivateFieldGet(this, _OfficeDoc_setting, "f").mediumInputSize}px`;
                     }
                     const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
                     const idElement = this.generateIdElement(key);
-                    const component = ` <input id=${idElement} type='text' style=${styleComponent}/>`;
+                    const component = ` <${componentName} id=${idElement} type='text' style='${styleComponent}'></${componentName}>`;
                     html = html.replace(text, component);
                 }
                 // console.log('html', html);

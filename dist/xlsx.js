@@ -89,6 +89,7 @@ class Xlsx extends office_1.default {
                 console.log('textReplaces', textReplaces);
                 for (let text of textReplaces) {
                     let width = '10px';
+                    let componentName = 'input';
                     let style;
                     const key = text.replace('>{{', '').replace('}}<', '');
                     this.initKeyWhenNoValue(key);
@@ -103,13 +104,14 @@ class Xlsx extends office_1.default {
                     else if (__classPrivateFieldGet(this, _Xlsx_setting, "f").containsLargeTextInput.some(txt => text.includes(txt))) {
                         width = `${__classPrivateFieldGet(this, _Xlsx_setting, "f").largeInputSize}px`;
                         style = __classPrivateFieldGet(this, _Xlsx_setting, "f").styleLargeTextInput;
+                        componentName = 'textarea';
                     }
                     else {
                         width = `${__classPrivateFieldGet(this, _Xlsx_setting, "f").mediumInputSize}px`;
                     }
                     const idElement = this.generateIdElement(key);
                     const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
-                    const component = `> <input id=${idElement} type='text' style='${styleComponent}'/><`;
+                    const component = `> <${componentName} id=${idElement} type='text' style='${styleComponent}'></${componentName}><`;
                     html = html.replace(text, component);
                 }
                 // Hiển thị HTML
