@@ -73,8 +73,8 @@ export class BaseSetting {
         this.#containsLargeTextInput = options?.containsTextLargeInput ?? [];
 
         this.#styleSmallTextInput = options?.styleSmallTextInput;
-        this.#styleMediumTextInput = options?.styleMediumTextInput,
-        this.#styleLargeTextInput = options?.styleLargeTextInput,
+        this.#styleMediumTextInput = options?.styleMediumTextInput;
+        this.#styleLargeTextInput = options?.styleLargeTextInput;
     }
 }
 
