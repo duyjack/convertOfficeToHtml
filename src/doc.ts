@@ -65,6 +65,7 @@ export default class OfficeDoc<T> extends BaseOffice<T> {
                         }
                         const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
                         const idElement = this.generateIdElement(key);
+                        const value = (this.getParams() as any)[key];
                         const component = ` <${componentName} id=${idElement} type='text' style='${styleComponent}'></${componentName}>`;
                         html = html.replace(text, component);
                     }

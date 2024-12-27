@@ -61,7 +61,7 @@ export class BaseSetting {
         return this.#styleLargeTextInput;
     }
 
-    constructor(delimiters: Delimiters){
+    constructor(delimiters: Delimiters) {
         this.#delimiters = delimiters;
     }
 
@@ -106,21 +106,37 @@ export default class BaseOffice<T> {
         return this.#url;
     }
 
-    protected initKeyWhenNoValue(key: string) {
+    protected initKeyWhenNoValue(key: string, isArray: boolean = false, position?: number) {
         if (!this.#params[`${key}`]) {
-            this.#params[`${key}`] = '';
+            if (isArray) {
+                this.#params[`${key}`] = [];
+                if (position !== undefined) {
+                    this.#params[`${key}`][position] = '';
+                }
+            } else {
+                this.#params[`${key}`] = '';
+            }
+        } else {
+            if (isArray && this.#params[`${key}`]) {
+                if (position != undefined && !this.#params[`${key}`][position]) {
+                    this.#params[`${key}`][position] = '';
+                }
+            }
         }
     }
 
     loadToHtml(container: HTMLElement): Promise<void> {
-        throw new Error ('no implement');
+        throw new Error('no implement');
     }
 
     resetParams() {
         this.#params = {};
     }
 
-    protected generateIdElement(key: string) {
+    protected generateIdElement(key: string, position?: number) {
+        if (position != undefined) {
+            return `${PrefixId.input}_${key}_${position}`;
+        }
         return `${PrefixId.input}_${key}`;
     }
 
@@ -128,9 +144,14 @@ export default class BaseOffice<T> {
         return this.#params as T;
     }
 
-    updateParams(key: string, value: any): void {
-        this.#params[key] = value;
-        const elementId = this.generateIdElement(key);
+    updateParams(key: string, value: any, position?: number): void {
+        if (Array.isArray(this.#params[key]) && position != undefined) {
+            console.log(`updateParams key ${key} - value ${value} - position ${position}`)
+            this.#params[key][position!] = value;
+        } else {
+            this.#params[key] = value;
+        }
+        const elementId = this.generateIdElement(key, position);
         const element = document.getElementById(elementId) as HTMLInputElement | undefined;
         if (element) {
             element!.value = value;
@@ -139,20 +160,47 @@ export default class BaseOffice<T> {
 
     onChangeValueInput(callback?: (key: string, value: any) => void): void {
         Object.keys(this.#params).forEach(key => {
-            const idElement = this.generateIdElement(key);
-            const element = document.getElementById(idElement) as HTMLInputElement | HTMLTextAreaElement;
-            element?.addEventListener('input', (e) => {
-                const value = (e.target as HTMLInputElement).value;
-                if (callback) {
-                    callback(key, value);
+            if (Array.isArray(this.#params[key])) {
+                this.#params[key].forEach((value, index) => {
+                    const idElement = this.generateIdElement(key, index);
+                    const element = document.getElementById(idElement) as HTMLInputElement | HTMLTextAreaElement;
+                    if (element && !element.oninput) {
+                        element.oninput = (e) => {
+                            const value = (e.target as HTMLInputElement).value;
+                            this.updateParams(key, value, index);
+                            if (callback) {
+                                callback(key, value);
+                            }
+                        }
+                    }
+                });
+            } else {
+                const idElement = this.generateIdElement(key);
+                const element = document.getElementById(idElement) as HTMLInputElement | HTMLTextAreaElement;
+                if (element && !element.oninput) {
+                    element.oninput = (e) => {
+                        const value = (e.target as HTMLInputElement).value;
+                        this.updateParams(key, value);
+                        if (callback) {
+                            callback(key, value);
+                        }
+                    }
                 }
-                this.updateParams(key, value);
-            });
+            }
         })
     }
 
     saveFileWithParams(fileName: string): Promise<void> {
-        throw new Error ('no implement');
+        throw new Error('no implement');
+    }
+
+    protected getValueFromKey(key: string,
+        options?: {
+            position: number // for excel
+        }
+    ) {
+        
+        return (this.getParams() as any)[key];
     }
 
 }
