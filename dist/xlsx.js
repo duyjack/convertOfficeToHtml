@@ -62,10 +62,18 @@ class SettingXlsx extends office_1.BaseSetting {
 }
 exports.SettingXlsx = SettingXlsx;
 class Xlsx extends office_1.default {
-    constructor(url, setting) {
-        super(url, {});
+    constructor(url, options) {
+        var _a;
+        super(url, ((_a = options.params) !== null && _a !== void 0 ? _a : {}));
         _Xlsx_setting.set(this, void 0);
-        __classPrivateFieldSet(this, _Xlsx_setting, setting, "f");
+        this.numberRowsExtra = 0;
+        __classPrivateFieldSet(this, _Xlsx_setting, options.setting, "f");
+        Object.keys(this.getParams()).forEach(key => {
+            const length = this.getParams()[key].length;
+            if (length > 0 && this.numberRowsExtra < length - 1) {
+                this.numberRowsExtra = length - 1;
+            }
+        });
     }
     loadToHtml(container) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -85,41 +93,9 @@ class Xlsx extends office_1.default {
                     // Lấy sheet đầu tiên
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     // console.log('cols', firstSheet['!cols']);
-                    // console.log('rows', firstSheet['!cols']);
-                    // Chuyển đổi sheet thành HTML
-                    let html = xlsx.utils.sheet_to_html(firstSheet);
-                    // console.log('html', html);
-                    const textReplaces = html.match(/>{{\s*[\w.]+\s*}}</g);
-                    // console.log('textReplaces', textReplaces);
-                    for (let text of textReplaces) {
-                        let width = '10px';
-                        let componentName = 'input';
-                        let style;
-                        const key = text.replace('>{{', '').replace('}}<', '');
-                        this.initKeyWhenNoValue(key);
-                        if (__classPrivateFieldGet(this, _Xlsx_setting, "f").containsSmallTextInput.some(txt => text.includes(txt))) {
-                            width = `${__classPrivateFieldGet(this, _Xlsx_setting, "f").smallInputSize}px`;
-                            style = __classPrivateFieldGet(this, _Xlsx_setting, "f").styleSmallTextInput;
-                        }
-                        else if (__classPrivateFieldGet(this, _Xlsx_setting, "f").containsMediumTextInput.some(txt => text.includes(txt))) {
-                            width = `${__classPrivateFieldGet(this, _Xlsx_setting, "f").mediumInputSize}px`;
-                            style = __classPrivateFieldGet(this, _Xlsx_setting, "f").styleMediumTextInput;
-                        }
-                        else if (__classPrivateFieldGet(this, _Xlsx_setting, "f").containsLargeTextInput.some(txt => text.includes(txt))) {
-                            width = `${__classPrivateFieldGet(this, _Xlsx_setting, "f").largeInputSize}px`;
-                            style = __classPrivateFieldGet(this, _Xlsx_setting, "f").styleLargeTextInput;
-                            componentName = 'textarea';
-                        }
-                        else {
-                            width = `${__classPrivateFieldGet(this, _Xlsx_setting, "f").mediumInputSize}px`;
-                        }
-                        const idElement = this.generateIdElement(key);
-                        const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
-                        const component = `> <${componentName} id=${idElement} type='text' style='${styleComponent}'></${componentName}><`;
-                        html = html.replace(text, component);
-                    }
-                    // Hiển thị HTML
-                    container.innerHTML = html;
+                    // console.log('rows', firstSheet['!rows']);
+                    this.jsonData = xlsx.utils.sheet_to_json(firstSheet, { header: 1 });
+                    this.renderTable(container, this.jsonData);
                     resolve();
                 }
                 catch (error) {
@@ -129,6 +105,87 @@ class Xlsx extends office_1.default {
                 }
             }));
         });
+    }
+    addNewRow(container) {
+        this.numberRowsExtra++;
+        this.renderTable(container, this.jsonData);
+        if (this.callbackOnInput) {
+            this.listenInputChangeValue();
+        }
+    }
+    removeRow(container) {
+        if (this.numberRowsExtra > 0) {
+            this.numberRowsExtra--;
+            this.renderTable(container, this.jsonData);
+            // console.log('params 1', JSON.stringify(this.getParams()));
+            Object.keys(this.getParams()).forEach(key => {
+                const position = this.getParams()[key].length - 1;
+                // console.log(`remove key ${key} - position ${position}`);
+                this.removeDataFromKey(key, position);
+            });
+            // console.log('params 2', JSON.stringify(this.getParams()));
+        }
+    }
+    renderTable(container, data) {
+        let tableHTML = '<table>';
+        let positionsWithInputs = []; // Lưu vị trí cột của các ô chứa `{{ }}`
+        let keyForPostions = new Map();
+        let lastRow = 0;
+        let maxCol = 1;
+        // Duyệt qua từng hàng và cột
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].length < 1) {
+                continue;
+            }
+            tableHTML += '<tr>';
+            // console.log('row', i, data[i].length);
+            if (maxCol < data[i].length) {
+                maxCol = data[i].length;
+            }
+            for (let j = 0; j < data[i].length; j++) {
+                const cell = data[i][j] || '';
+                // console.log(`row ${i} - col ${j} - data ${cell} - data[i].length ${data[i].length}`);
+                // Nếu ô chứa `{{ }}`, đánh dấu vị trí và thay bằng input đầu tiên
+                if (typeof cell === 'string' && cell.includes(__classPrivateFieldGet(this, _Xlsx_setting, "f").delimiters.start) && cell.includes(__classPrivateFieldGet(this, _Xlsx_setting, "f").delimiters.end)) {
+                    const key = String(cell).replace('{{', '').replace('}}', '');
+                    this.initKeyWhenNoValue(key, true, 0);
+                    const idElement = this.generateIdElement(key, 0);
+                    positionsWithInputs.push(j); // Lưu vị trí cột
+                    keyForPostions.set(j, key);
+                    const value = this.getDataFromKey(key, 0);
+                    tableHTML += `<td><input id=${idElement} type="text" value='${value}'></td>`;
+                    // tableHTML += `<td><input type="text" class="input-cell" placeholder="Nhập giá trị đầu tiên..."></td>`;
+                }
+                else {
+                    tableHTML += `<td colspan="n">${cell}</td>`;
+                }
+            }
+            tableHTML += '</tr>';
+            lastRow = i;
+        }
+        // console.log('positionsWithInputs', positionsWithInputs);
+        // console.log('lastRow', lastRow);
+        // console.log('data[lastRow].length', data[lastRow].length);
+        // Thêm các dòng input khác cho các cột được đánh dấu
+        for (let i = 0; i < this.numberRowsExtra; i++) { // Giả sử thêm 5 dòng input cho mỗi cột chứa `{{ }}`
+            tableHTML += '<tr>';
+            for (let j = 0; j < data[lastRow].length; j++) {
+                if (positionsWithInputs.includes(j)) {
+                    const key = keyForPostions.get(j);
+                    const idElement = this.generateIdElement(key, this.getParams()[key].length);
+                    this.initKeyWhenNoValue(key, true, i + 1);
+                    const value = this.getDataFromKey(key, i + 1);
+                    tableHTML += `<td><input id=${idElement} type="text" value='${value}'></td>`;
+                }
+                else {
+                    tableHTML += '<td></td>';
+                }
+            }
+            tableHTML += '</tr>';
+        }
+        tableHTML += '</table>';
+        const finalHTML = tableHTML.replace('colspan="n"', `colspan="${maxCol}"`);
+        container.innerHTML = finalHTML;
     }
     saveFileWithParams(fileName) {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
@@ -152,19 +209,47 @@ class Xlsx extends office_1.default {
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
             const data = xlsx.utils.sheet_to_json(worksheet, { header: 1 });
-            Object.keys(this.getParams()).forEach((key) => {
-                const value = this.getParams()[key];
-                const placeholder = `${__classPrivateFieldGet(this, _Xlsx_setting, "f").delimiters.start}${key}${__classPrivateFieldGet(this, _Xlsx_setting, "f").delimiters.end}`;
-                // Chuyển đổi sheet sang JSON để xử lý
-                // Thay thế placeholder trong bảng
-                for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
-                    for (let colIndex = 0; colIndex < data[rowIndex].length; colIndex++) {
-                        if (typeof data[rowIndex][colIndex] === "string" && data[rowIndex][colIndex].includes(placeholder)) {
-                            data[rowIndex][colIndex] = data[rowIndex][colIndex].replace(placeholder, value);
-                        }
+            let maxCol = 1;
+            let positionsWithInputs = []; // Lưu vị trí cột của các ô chứa `{{ }}`
+            let keyForPostions = new Map();
+            let lastRow = 0;
+            // console.log('data 1', data);
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].length < 1) {
+                    continue;
+                }
+                // console.log('row', i, data[i].length);
+                if (maxCol < data[i].length) {
+                    maxCol = data[i].length;
+                }
+                for (let j = 0; j < data[i].length; j++) {
+                    let cell = data[i][j] || '';
+                    // console.log(`row ${i} - col ${j} - data ${cell} - data[i].length ${data[i].length}`);
+                    // Nếu ô chứa `{{ }}`, đánh dấu vị trí và thay bằng input đầu tiên
+                    if (typeof cell === 'string' && cell.includes(__classPrivateFieldGet(this, _Xlsx_setting, "f").delimiters.start) && cell.includes(__classPrivateFieldGet(this, _Xlsx_setting, "f").delimiters.end)) {
+                        const key = String(cell).replace('{{', '').replace('}}', '');
+                        positionsWithInputs.push(j); // Lưu vị trí cột
+                        keyForPostions.set(j, key);
+                        const value = this.getDataFromKey(key, 0);
+                        data[i][j] = value;
                     }
                 }
-            });
+                lastRow = i;
+            }
+            // console.log('data 2', data);
+            for (let i = 0; i < this.numberRowsExtra; i++) { // Giả sử thêm 5 dòng input cho mỗi cột chứa `{{ }}`
+                const row = lastRow + 1 + i;
+                data[row].length = maxCol;
+                for (let j = 0; j < data[row].length; j++) {
+                    let cell = data[row][j] || '';
+                    if (positionsWithInputs.includes(j)) {
+                        const key = keyForPostions.get(j);
+                        const value = this.getDataFromKey(key, i + 1);
+                        data[row][j] = value;
+                    }
+                }
+            }
+            // console.log('data 3', data);
             // Chuyển dữ liệu đã xử lý ngược lại thành worksheet
             const newWorksheet = xlsx.utils.aoa_to_sheet(data);
             // Ghi worksheet vào workbook mới
@@ -176,6 +261,12 @@ class Xlsx extends office_1.default {
             (0, file_saver_1.saveAs)(blob, `${fileName}.xlsx`); // Sử dụng FileSaver.js để lưu file
             resolve();
         }));
+    }
+    getDataFromKey(key, position) {
+        return this.getParams()[key][position];
+    }
+    removeDataFromKey(key, position) {
+        delete this.getParams()[key][position];
     }
 }
 _Xlsx_setting = new WeakMap();

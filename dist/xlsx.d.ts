@@ -3,7 +3,17 @@ export declare class SettingXlsx extends BaseSetting {
 }
 export default class Xlsx<T> extends BaseOffice<T> {
     #private;
-    constructor(url: string, setting: SettingXlsx);
+    jsonData?: unknown[];
+    numberRowsExtra: number;
+    constructor(url: string, options: {
+        params?: any;
+        setting: SettingXlsx;
+    });
     loadToHtml(container: HTMLElement): Promise<void>;
+    addNewRow(container: HTMLElement): void;
+    removeRow(container: HTMLElement): void;
+    private renderTable;
     saveFileWithParams(fileName: string): Promise<void>;
+    private getDataFromKey;
+    private removeDataFromKey;
 }

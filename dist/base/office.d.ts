@@ -29,14 +29,19 @@ export declare class BaseSetting {
 }
 export default class BaseOffice<T> {
     #private;
+    callbackOnInput?: (key: string, value: any) => void;
     constructor(url: string, params: T);
     protected get url(): string;
-    protected initKeyWhenNoValue(key: string): void;
+    protected initKeyWhenNoValue(key: string, isArray?: boolean, position?: number): void;
     loadToHtml(container: HTMLElement): Promise<void>;
     resetParams(): void;
-    protected generateIdElement(key: string): string;
+    protected generateIdElement(key: string, position?: number): string;
     getParams(): T;
-    updateParams(key: string, value: any): void;
+    updateParams(key: string, value: any, position?: number): void;
     onChangeValueInput(callback?: (key: string, value: any) => void): void;
+    protected listenInputChangeValue(): void;
     saveFileWithParams(fileName: string): Promise<void>;
+    protected getValueFromKey(key: string, options?: {
+        position: number;
+    }): any;
 }

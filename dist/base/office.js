@@ -85,9 +85,24 @@ class BaseOffice {
     get url() {
         return __classPrivateFieldGet(this, _BaseOffice_url, "f");
     }
-    initKeyWhenNoValue(key) {
+    initKeyWhenNoValue(key, isArray = false, position) {
         if (!__classPrivateFieldGet(this, _BaseOffice_params, "f")[`${key}`]) {
-            __classPrivateFieldGet(this, _BaseOffice_params, "f")[`${key}`] = '';
+            if (isArray) {
+                __classPrivateFieldGet(this, _BaseOffice_params, "f")[`${key}`] = [];
+                if (position !== undefined) {
+                    __classPrivateFieldGet(this, _BaseOffice_params, "f")[`${key}`][position] = '';
+                }
+            }
+            else {
+                __classPrivateFieldGet(this, _BaseOffice_params, "f")[`${key}`] = '';
+            }
+        }
+        else {
+            if (isArray && __classPrivateFieldGet(this, _BaseOffice_params, "f")[`${key}`]) {
+                if (position != undefined && !__classPrivateFieldGet(this, _BaseOffice_params, "f")[`${key}`][position]) {
+                    __classPrivateFieldGet(this, _BaseOffice_params, "f")[`${key}`][position] = '';
+                }
+            }
         }
     }
     loadToHtml(container) {
@@ -96,35 +111,72 @@ class BaseOffice {
     resetParams() {
         __classPrivateFieldSet(this, _BaseOffice_params, {}, "f");
     }
-    generateIdElement(key) {
+    generateIdElement(key, position) {
+        if (position != undefined) {
+            return `${enum_1.PrefixId.input}_${key}_${position}`;
+        }
         return `${enum_1.PrefixId.input}_${key}`;
     }
     getParams() {
         return __classPrivateFieldGet(this, _BaseOffice_params, "f");
     }
-    updateParams(key, value) {
-        __classPrivateFieldGet(this, _BaseOffice_params, "f")[key] = value;
-        const elementId = this.generateIdElement(key);
+    updateParams(key, value, position) {
+        if (Array.isArray(__classPrivateFieldGet(this, _BaseOffice_params, "f")[key]) && position != undefined) {
+            console.log(`updateParams key ${key} - value ${value} - position ${position}`);
+            __classPrivateFieldGet(this, _BaseOffice_params, "f")[key][position] = value;
+        }
+        else {
+            __classPrivateFieldGet(this, _BaseOffice_params, "f")[key] = value;
+        }
+        const elementId = this.generateIdElement(key, position);
         const element = document.getElementById(elementId);
         if (element) {
             element.value = value;
         }
     }
     onChangeValueInput(callback) {
+        if (!this.callbackOnInput) {
+            this.callbackOnInput = callback;
+            this.listenInputChangeValue();
+        }
+    }
+    listenInputChangeValue() {
         Object.keys(__classPrivateFieldGet(this, _BaseOffice_params, "f")).forEach(key => {
-            const idElement = this.generateIdElement(key);
-            const element = document.getElementById(idElement);
-            element === null || element === void 0 ? void 0 : element.addEventListener('input', (e) => {
-                const value = e.target.value;
-                if (callback) {
-                    callback(key, value);
+            if (Array.isArray(__classPrivateFieldGet(this, _BaseOffice_params, "f")[key])) {
+                __classPrivateFieldGet(this, _BaseOffice_params, "f")[key].forEach((value, index) => {
+                    const idElement = this.generateIdElement(key, index);
+                    const element = document.getElementById(idElement);
+                    if (element && !element.oninput) {
+                        element.oninput = (e) => {
+                            const value = e.target.value;
+                            this.updateParams(key, value, index);
+                            if (this.callbackOnInput) {
+                                this.callbackOnInput(key, value);
+                            }
+                        };
+                    }
+                });
+            }
+            else {
+                const idElement = this.generateIdElement(key);
+                const element = document.getElementById(idElement);
+                if (element && !element.oninput) {
+                    element.oninput = (e) => {
+                        const value = e.target.value;
+                        this.updateParams(key, value);
+                        if (this.callbackOnInput) {
+                            this.callbackOnInput(key, value);
+                        }
+                    };
                 }
-                this.updateParams(key, value);
-            });
+            }
         });
     }
     saveFileWithParams(fileName) {
         throw new Error('no implement');
+    }
+    getValueFromKey(key, options) {
+        return this.getParams()[key];
     }
 }
 _BaseOffice_url = new WeakMap(), _BaseOffice_params = new WeakMap();

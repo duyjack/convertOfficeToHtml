@@ -73,10 +73,11 @@ function loadFile(url, callback) {
     index_js_1.default.getBinaryContent(url, callback);
 }
 class OfficeDoc extends office_1.default {
-    constructor(url, setting) {
-        super(url, {});
+    constructor(url, options) {
+        var _a;
+        super(url, ((_a = options.params) !== null && _a !== void 0 ? _a : {}));
         _OfficeDoc_setting.set(this, void 0);
-        __classPrivateFieldSet(this, _OfficeDoc_setting, setting, "f");
+        __classPrivateFieldSet(this, _OfficeDoc_setting, options.setting, "f");
     }
     loadToHtml(container) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -123,7 +124,8 @@ class OfficeDoc extends office_1.default {
                         }
                         const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
                         const idElement = this.generateIdElement(key);
-                        const component = ` <${componentName} id=${idElement} type='text' style='${styleComponent}'></${componentName}>`;
+                        const value = this.getParams()[key];
+                        const component = ` <${componentName} id=${idElement} value='${value}' type='text' style='${styleComponent}'></${componentName}>`;
                         html = html.replace(text, component);
                     }
                     // console.log('html', html);
