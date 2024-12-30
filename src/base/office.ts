@@ -172,6 +172,7 @@ export default class BaseOffice<T> {
                 this.#params[key].forEach((value, index) => {
                     const idElement = this.generateIdElement(key, index);
                     const element = document.getElementById(idElement) as HTMLInputElement | HTMLTextAreaElement;
+                    console.log(`listenInputChangeValue key ${key} - element ${element} - event ${element?.oninput != null}`);
                     if (element && !element.oninput) {
                         element.oninput = (e) => {
                             const value = (e.target as HTMLInputElement).value;

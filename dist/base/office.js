@@ -146,6 +146,7 @@ class BaseOffice {
                 __classPrivateFieldGet(this, _BaseOffice_params, "f")[key].forEach((value, index) => {
                     const idElement = this.generateIdElement(key, index);
                     const element = document.getElementById(idElement);
+                    console.log(`listenInputChangeValue key ${key} - element ${element} - event ${(element === null || element === void 0 ? void 0 : element.oninput) != null}`);
                     if (element && !element.oninput) {
                         element.oninput = (e) => {
                             const value = e.target.value;

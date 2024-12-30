@@ -21,7 +21,7 @@ export default class Xlsx<T> extends BaseOffice<T> {
         Object.keys(this.getParams() as any).forEach(key => {
             const length = (this.getParams() as any)[key].length;
             if (length > 0 && this.numberRowsExtra < length - 1) {
-                this.numberRowsExtra = length - 1;   
+                this.numberRowsExtra = length - 1;
             }
         });
     }
@@ -62,10 +62,20 @@ export default class Xlsx<T> extends BaseOffice<T> {
 
     addNewRow(container: HTMLElement) {
         this.numberRowsExtra++;
+        const observer = new MutationObserver((mutationsList, observer) => {
+            for (let mutation of mutationsList) {
+                if (mutation.type === 'childList' || (mutation.type as string) === 'subtree') {
+                    console.log('Render completed or updated');
+                    if (this.callbackOnInput) {
+                        this.listenInputChangeValue();
+                    }
+                    observer.disconnect();
+                    // Lắng nghe sau khi render xong
+                }
+            }
+        });
+        observer.observe(container, { childList: true, subtree: true });
         this.renderTable(container, this.jsonData);
-        if (this.callbackOnInput) {
-            this.listenInputChangeValue();
-        }
     }
 
     removeRow(container: HTMLElement) {

@@ -108,10 +108,20 @@ class Xlsx extends office_1.default {
     }
     addNewRow(container) {
         this.numberRowsExtra++;
+        const observer = new MutationObserver((mutationsList, observer) => {
+            for (let mutation of mutationsList) {
+                if (mutation.type === 'childList' || mutation.type === 'subtree') {
+                    console.log('Render completed or updated');
+                    if (this.callbackOnInput) {
+                        this.listenInputChangeValue();
+                    }
+                    observer.disconnect();
+                    // Lắng nghe sau khi render xong
+                }
+            }
+        });
+        observer.observe(container, { childList: true, subtree: true });
         this.renderTable(container, this.jsonData);
-        if (this.callbackOnInput) {
-            this.listenInputChangeValue();
-        }
     }
     removeRow(container) {
         if (this.numberRowsExtra > 0) {
