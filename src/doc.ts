@@ -20,9 +20,9 @@ export default class OfficeDoc<T> extends BaseOffice<T> {
 
     #setting: SettingDoc;
 
-    constructor(url: string, setting: SettingDoc) {
-        super(url, {} as any);
-        this.#setting = setting;
+    constructor(url: string, options: { params?: any, setting: SettingDoc }) {
+        super(url, (options.params ?? {}) as any);
+        this.#setting = options.setting;
     }
 
     async loadToHtml(container: HTMLElement): Promise<void> {
@@ -66,7 +66,7 @@ export default class OfficeDoc<T> extends BaseOffice<T> {
                         const styleComponent = style ? style + `,width: ${width}` : `width: ${width}`;
                         const idElement = this.generateIdElement(key);
                         const value = (this.getParams() as any)[key];
-                        const component = ` <${componentName} id=${idElement} type='text' style='${styleComponent}'></${componentName}>`;
+                        const component = ` <${componentName} id=${idElement} value='${value}' type='text' style='${styleComponent}'></${componentName}>`;
                         html = html.replace(text, component);
                     }
                     // console.log('html', html);

@@ -14,10 +14,16 @@ export default class Xlsx<T> extends BaseOffice<T> {
 
     constructor(
         url: string,
-        setting: SettingXlsx,
+        options: { params?: any, setting: SettingXlsx }
     ) {
-        super(url, {} as any)
-        this.#setting = setting;
+        super(url, (options.params ?? {}) as any)
+        this.#setting = options.setting;
+        Object.keys(this.getParams() as any).forEach(key => {
+            const length = (this.getParams() as any)[key].length;
+            if (length > 0 && this.numberRowsExtra < length - 1) {
+                this.numberRowsExtra = length - 1;   
+            }
+        });
     }
 
 
@@ -57,16 +63,23 @@ export default class Xlsx<T> extends BaseOffice<T> {
     addNewRow(container: HTMLElement) {
         this.numberRowsExtra++;
         this.renderTable(container, this.jsonData);
+        if (this.callbackOnInput) {
+            this.listenInputChangeValue();
+        }
     }
 
     removeRow(container: HTMLElement) {
         if (this.numberRowsExtra > 0) {
             this.numberRowsExtra--;
             this.renderTable(container, this.jsonData);
+            // console.log('params 1', JSON.stringify(this.getParams()));
             Object.keys(this.getParams() as any).forEach(key => {
-                this.removeDataFromKey(key, ((this.getParams() as any)[key] as []).length);
+                const position = ((this.getParams() as any)[key] as []).length - 1;
+                // console.log(`remove key ${key} - position ${position}`);
+                this.removeDataFromKey(key, position);
             });
-        } 
+            // console.log('params 2', JSON.stringify(this.getParams()));
+        }
     }
 
     private renderTable(container: HTMLElement, data: any) {
@@ -87,7 +100,7 @@ export default class Xlsx<T> extends BaseOffice<T> {
             }
             for (let j = 0; j < data[i].length; j++) {
                 const cell = data[i][j] || '';
-                console.log(`row ${i} - col ${j} - data ${cell} - data[i].length ${data[i].length}`);
+                // console.log(`row ${i} - col ${j} - data ${cell} - data[i].length ${data[i].length}`);
                 // Nếu ô chứa `{{ }}`, đánh dấu vị trí và thay bằng input đầu tiên
                 if (typeof cell === 'string' && cell.includes(this.#setting.delimiters.start) && cell.includes(this.#setting.delimiters.end)) {
                     const key = String(cell).replace('{{', '').replace('}}', '');
@@ -105,9 +118,9 @@ export default class Xlsx<T> extends BaseOffice<T> {
             tableHTML += '</tr>';
             lastRow = i;
         }
-        console.log('positionsWithInputs', positionsWithInputs);
-        console.log('lastRow', lastRow);
-        console.log('data[lastRow].length', data[lastRow].length);
+        // console.log('positionsWithInputs', positionsWithInputs);
+        // console.log('lastRow', lastRow);
+        // console.log('data[lastRow].length', data[lastRow].length);
         // Thêm các dòng input khác cho các cột được đánh dấu
         for (let i = 0; i < this.numberRowsExtra; i++) { // Giả sử thêm 5 dòng input cho mỗi cột chứa `{{ }}`
             tableHTML += '<tr>';
@@ -151,20 +164,48 @@ export default class Xlsx<T> extends BaseOffice<T> {
             const workbook = xlsx.read(new Uint8Array(arrayBuffer), { type: 'array' });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-            const data = xlsx.utils.sheet_to_json(worksheet, { header: 1 });
-            Object.keys(this.getParams() as any).forEach((key) => {
-                const value = (this.getParams() as any)[key];
-                const placeholder = `${this.#setting.delimiters.start}${key}${this.#setting.delimiters.end}`;
-                // Chuyển đổi sheet sang JSON để xử lý
-                // Thay thế placeholder trong bảng
-                for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
-                    for (let colIndex = 0; colIndex < (data as any[])[rowIndex].length; colIndex++) {
-                        if (typeof (data as any[])[rowIndex][colIndex] === "string" && (data as any[])[rowIndex][colIndex].includes(placeholder)) {
-                            (data as any[])[rowIndex][colIndex] = (data as any[])[rowIndex][colIndex].replace(placeholder, value);
-                        }
+            const data = xlsx.utils.sheet_to_json(worksheet, { header: 1 }) as any[];
+            let maxCol = 1;
+            let positionsWithInputs = []; // Lưu vị trí cột của các ô chứa `{{ }}`
+            let keyForPostions: Map<number, string> = new Map<number, string>();
+            let lastRow: number = 0;
+            // console.log('data 1', data);
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].length < 1) {
+                    continue;
+                }
+                // console.log('row', i, data[i].length);
+                if (maxCol < data[i].length) {
+                    maxCol = data[i].length;
+                }
+                for (let j = 0; j < data[i].length; j++) {
+                    let cell = data[i][j] || '';
+                    // console.log(`row ${i} - col ${j} - data ${cell} - data[i].length ${data[i].length}`);
+                    // Nếu ô chứa `{{ }}`, đánh dấu vị trí và thay bằng input đầu tiên
+                    if (typeof cell === 'string' && cell.includes(this.#setting.delimiters.start) && cell.includes(this.#setting.delimiters.end)) {
+                        const key = String(cell).replace('{{', '').replace('}}', '');
+                        positionsWithInputs.push(j); // Lưu vị trí cột
+                        keyForPostions.set(j, key);
+                        const value = this.getDataFromKey(key!, 0) as string;
+                        data[i][j] = value;
                     }
                 }
-            })
+                lastRow = i;
+            }
+            // console.log('data 2', data);
+            for (let i = 0; i < this.numberRowsExtra; i++) { // Giả sử thêm 5 dòng input cho mỗi cột chứa `{{ }}`
+                const row = lastRow + 1 + i;
+                data[row].length = maxCol;
+                for (let j = 0; j < data[row].length; j++) {
+                    let cell = data[row][j] || '';
+                    if (positionsWithInputs.includes(j)) {
+                        const key = keyForPostions.get(j);
+                        const value = this.getDataFromKey(key!, i + 1);
+                        data[row][j] = value;
+                    }
+                }
+            }
+            // console.log('data 3', data);
 
             // Chuyển dữ liệu đã xử lý ngược lại thành worksheet
             const newWorksheet = xlsx.utils.aoa_to_sheet(data as [][]);
@@ -180,7 +221,7 @@ export default class Xlsx<T> extends BaseOffice<T> {
             resolve();
         });
     }
-    
+
     private getDataFromKey(key: string, position: number): any {
         return (this.getParams() as any)[key][position];
     }

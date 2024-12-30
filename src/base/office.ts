@@ -96,6 +96,7 @@ export default class BaseOffice<T> {
 
     #url: string;
     #params: any; // key: value of doc
+    callbackOnInput?: (key: string, value: any) => void
 
     constructor(url: string, params: T) {
         this.#url = url;
@@ -159,6 +160,13 @@ export default class BaseOffice<T> {
     }
 
     onChangeValueInput(callback?: (key: string, value: any) => void): void {
+        if (!this.callbackOnInput) {
+            this.callbackOnInput = callback;
+            this.listenInputChangeValue();
+        }
+    }
+
+    protected listenInputChangeValue() {
         Object.keys(this.#params).forEach(key => {
             if (Array.isArray(this.#params[key])) {
                 this.#params[key].forEach((value, index) => {
@@ -168,8 +176,8 @@ export default class BaseOffice<T> {
                         element.oninput = (e) => {
                             const value = (e.target as HTMLInputElement).value;
                             this.updateParams(key, value, index);
-                            if (callback) {
-                                callback(key, value);
+                            if (this.callbackOnInput) {
+                                this.callbackOnInput(key, value);
                             }
                         }
                     }
@@ -181,8 +189,8 @@ export default class BaseOffice<T> {
                     element.oninput = (e) => {
                         const value = (e.target as HTMLInputElement).value;
                         this.updateParams(key, value);
-                        if (callback) {
-                            callback(key, value);
+                        if (this.callbackOnInput) {
+                            this.callbackOnInput(key, value);
                         }
                     }
                 }
